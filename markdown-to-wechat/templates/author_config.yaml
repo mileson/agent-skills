@@ -1,0 +1,42 @@
+# 文章作者配置文件
+# 用于生成文章头部的作者信息和阅读时间
+
+# 作者信息
+author:
+  name: "超级峰"
+  avatar_url: "http://mileson-documents.oss-cn-hangzhou.aliyuncs.com/chaojifeng.jpg"
+  # 可选：作者简介
+  bio: ""
+
+# 阅读时间设置
+reading_time:
+  # 是否启用阅读时间显示
+  enabled: true
+  # 正常阅读速度（字/分钟）
+  normal_speed: 300
+  # 快速阅读速度（字/分钟）
+  fast_speed: 600
+  # 显示文本
+  label_normal: "读完需要"
+  label_fast: "速读仅需"
+  unit: "分钟"
+  unit_short: "分钟"
+
+# 文章头部样式配置
+header_style:
+  # 是否显示文章头部
+  enabled: true
+  # 头像大小（像素）
+  avatar_size: 80
+  # 头像圆角（像素）
+  avatar_radius: 40
+  # 分隔线颜色
+  divider_color: "#E5E7EB"
+  # 阅读时间卡片背景色
+  card_bg: "#F0F9FF"
+  # 阅读时间卡片边框色
+  card_border: "#7DD3FC"
+  # 阅读时间卡片文字色
+  card_text_color: "#0284C7"
+  # 阅读时间大数字颜色
+  card_number_color: "#0369A1"

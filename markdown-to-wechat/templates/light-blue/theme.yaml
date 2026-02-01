@@ -1,0 +1,144 @@
+name: "淡蓝色主题"
+description: "适合微信公众号的淡蓝色清新主题，提供舒适的阅读体验"
+version: "1.0.0"
+
+# 颜色配置
+colors:
+  # 主色调
+  primary: "#55C9EA"              # 主题色：天空蓝
+  secondary: "#81D4FA"            # 辅助色：浅蓝
+  accent: "#29B6F6"               # 强调色：明蓝
+  
+  # 文字颜色
+  text_primary: "#3e3e3e"         # 正文：深灰（比纯黑更柔和）
+  text_secondary: "#888888"       # 标注：中灰
+  text_light: "#b0b0b0"           # 浅文字
+  text_link: "#55C9EA"            # 链接颜色（使用主题色）
+  
+  # 背景颜色
+  bg_primary: "#ffffff"           # 主背景：白色
+  bg_secondary: "#f5f9fc"         # 次背景：淡蓝白
+  
+  # 代码块 - 紧凑风格高质感灰
+  bg_code: "#F7F8FA"              # 代码背景：高质感灰
+  bg_code_dark: "#2C2D30"         # 深色代码背景
+  code_line_number_bg: "#E8E9EB"  # 行号背景
+  code_line_number_text: "#8F959E" # 行号文字
+  code_border: "#E1E3E6"          # 代码边框
+  code_header_bg: "#F3F4F6"       # 代码块标题背景
+  code_header_text: "#6B7280"     # 代码块标题文字
+  
+  # 引用块 - 简约风格
+  bg_quote: "transparent"         # 透明背景
+  quote_line_color: "#D1D5DB"     # 细灰色竖线（Tailwind gray-300）
+  quote_text_color: "#6B7280"     # 浅灰色文字（Tailwind gray-500）
+  quote_border: "#D1D5DB"         # 边框色（兼容）
+  quote_icon_color: "#8F959E"     # 引用图标色
+  
+  # 表格 - 简约风格（表头灰，内容白）
+  table_bg: "#ffffff"             # 表格内容背景：白色
+  table_header_bg: "#F3F4F6"      # 表头背景：浅灰（Tailwind gray-100）
+  table_border: "#E5E7EB"         # 表格边框：细灰（Tailwind gray-200）
+  
+  # 列表 - 蓝色标记
+  list_marker_color: "#55C9EA"    # 列表序号/圆点颜色：主题蓝
+  
+  # 分割线
+  divider_color: "#E5E7EB"        # 分割线颜色：细灰
+  
+  # 标题装饰
+  heading_number_color: "#0D9488" # 标题编号颜色：深青色
+  heading_bar_start: "#0D9488"    # H2 渐变条起始色：深青
+  heading_bar_end: "#5EEAD4"      # H2 渐变条结束色：浅青
+  
+  bg_table_header: "#e3f2fd"      # 表格头部：淡蓝
+  bg_table_row_alt: "#f5f9fc"     # 表格交替行：淡蓝白
+  
+  # 边框颜色
+  border: "#b3e5fc"               # 边框：浅蓝
+  border_light: "#e0f7fa"         # 浅边框
+  border_strong: "#55C9EA"        # 强边框（使用主题色）
+  
+  # 强调色 - 淡橙色系
+  highlight_bg: "#FFF3E0"         # 高亮背景：浅橙
+  highlight_color: "#FF9800"      # 高亮颜色：橙色
+  highlight_border: "#FFB74D"     # 高亮边框：淡橙
+
+# 排版配置
+typography:
+  # 字体
+  font_family: "PingFang SC, Hiragino Sans GB, Microsoft YaHei, -apple-system, BlinkMacSystemFont, sans-serif"
+  font_family_code: "Consolas, Monaco, Menlo, Courier New, monospace"
+  
+  # 基础字号（px）
+  font_size_base: 15              # 正文：15px（微信推荐）
+  font_size_h1: 20                # 一级标题：20px
+  font_size_h2: 18                # 二级标题：18px
+  font_size_h3: 16                # 三级标题：16px
+  font_size_h4: 15                # 四级标题：15px
+  font_size_code: 14              # 代码：14px
+  font_size_small: 13             # 小字：13px
+  font_size_footnote: 12          # 脚注：12px
+  
+  # 行高（倍数）
+  line_height: 1.8                # 正文行高：1.8（最佳阅读体验）
+  line_height_heading: 1.4        # 标题行高：1.4
+  line_height_code: 1.6           # 代码行高：1.6
+  
+  # 字间距（px）
+  letter_spacing: 0.5             # 字间距：0.5px（微调）
+  letter_spacing_heading: 1.0     # 标题字间距：1.0px
+  
+  # 段落间距（px）
+  paragraph_spacing: 16           # 段落间距：16px
+  
+  # 缩进
+  text_indent: 0                  # 首行缩进：0（微信推荐不缩进）
+  padding_horizontal: 16          # 水平内边距：16px
+
+# 间距配置（px）
+spacing:
+  section_margin: 32              # 章节间距
+  element_margin: 16              # 元素间距
+  list_indent: 24                 # 列表缩进
+  quote_padding: 16               # 引用内边距
+  code_padding: 12                # 代码块内边距
+  table_cell_padding: 8           # 表格单元格内边距
+
+# 微信公众号优化配置
+wechat_optimization:
+  max_image_width: 677            # 微信最大图片宽度
+  max_image_size_mb: 10           # 图片最大尺寸（MB）
+  enable_lazy_load: false         # 禁用懒加载（微信不支持）
+  link_to_footnote: true          # 外部链接转脚注
+  inline_all_styles: true         # 强制内联所有样式
+  remove_classes: false           # 保留 class 属性，微信编辑器需要
+  strip_javascript: true          # 移除 JavaScript
+  fix_list_nesting: true          # 修复列表嵌套
+
+# 代码高亮配置
+code_highlight:
+  enabled: true                   # 启用代码高亮
+  style: "default"                # Pygments 样式：default（深灰色文字）
+  show_line_numbers: true         # 显示行号（飞书风格）
+  line_number_start: 1            # 行号起始值
+  
+# 圆角配置
+border_radius:
+  small: 4                        # 小圆角（标题、分割线）
+  medium: 8                       # 中圆角（代码块、引用块）
+  large: 12                       # 大圆角（特殊容器）
+  image: 12                       # 图片圆角
+  code_block: 8                   # 代码块圆角
+  quote_block: 8                  # 引用块圆角
+  table: 6                        # 表格圆角
+  
+# 功能开关
+features:
+  enable_toc: false               # 目录（暂不支持）
+  enable_math: false              # 数学公式（暂不支持）
+  enable_mermaid: false           # Mermaid 图表（暂不支持）
+  enable_footnotes: true          # 脚注
+  enable_tables: true             # 表格
+  enable_task_lists: true         # 任务列表
+  enable_strikethrough: true      # 删除线

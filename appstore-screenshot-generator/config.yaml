@@ -1,0 +1,592 @@
+# =============================================================================
+# App Store Screenshot Generator - 配置文件
+# =============================================================================
+# 文件说明书（每次更新文件内容的时候记得更新我）
+#
+# ## 核心功能
+# 定义 App Store 商店图生成的所有配置，包括预设 prompt 模板、尺寸规格、样式选项
+#
+# ## input（输入）
+# - 由 SKILL.md 和 scripts/ 中的脚本读取
+# - 用户可以通过环境变量覆盖部分配置
+#
+# ## output（输出）
+# - 为 prompt_builder.py 提供模板
+# - 为 gemini_client.py 提供 API 配置
+# - 为 image_processor.py 提供输出规格
+#
+# ## position（定位）
+# 作为整个 Skill 的核心配置中心，统一管理所有可配置项
+#
+# ## dependency（依赖）
+# - 被 scripts/prompt_builder.py 依赖用于构建 prompt
+# - 被 scripts/gemini_client.py 依赖用于 API 调用
+# - 被 scripts/image_processor.py 依赖用于图像处理
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# API 配置
+# -----------------------------------------------------------------------------
+api:
+  # 可用模型
+  models:
+    flash:
+      name: "gemini-2.5-flash-image"
+      alias: "Nano Banana"
+      description: "速度快、效率高，适合快速迭代"
+      max_input_images: 3
+      resolutions: ["1K"]
+
+    pro:
+      name: "gemini-3-pro-image-preview"
+      alias: "Nano Banana Pro"
+      description: "专业级、支持4K，适合最终输出"
+      max_input_images: 14
+      resolutions: ["1K", "2K", "4K"]
+
+  # 默认使用的模型
+  default_model: "gemini-2.5-flash-image"
+
+  # API 超时时间（毫秒）
+  timeout: 60000
+
+  # 重试次数
+  max_retries: 3
+
+  # Cloudflare AI Gateway 配置（可选）
+  cloudflare:
+    enabled: false
+    base_url_template: "https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/google-ai-studio"
+
+# -----------------------------------------------------------------------------
+# App Store 截图尺寸规格
+# -----------------------------------------------------------------------------
+screenshot_sizes:
+  # iPhone 尺寸（必需）
+  iphone_67:
+    name: "iPhone 6.7 inch"
+    width: 1290
+    height: 2796
+    devices: ["iPhone 15 Pro Max", "iPhone 15 Plus", "iPhone 14 Pro Max", "iPhone 14 Plus"]
+    required: true
+
+  iphone_65:
+    name: "iPhone 6.5 inch"
+    width: 1284
+    height: 2778
+    devices: ["iPhone 14 Pro", "iPhone 13 Pro Max", "iPhone 12 Pro Max", "iPhone 11 Pro Max"]
+    required: true
+
+  iphone_55:
+    name: "iPhone 5.5 inch"
+    width: 1242
+    height: 2208
+    devices: ["iPhone 8 Plus", "iPhone 7 Plus", "iPhone 6s Plus"]
+    required: false
+
+  # iPad 尺寸（如果支持 iPad）
+  ipad_129:
+    name: "iPad Pro 12.9 inch"
+    width: 2048
+    height: 2732
+    devices: ["iPad Pro 12.9"]
+    required: false
+
+  ipad_11:
+    name: "iPad Pro 11 inch"
+    width: 1668
+    height: 2388
+    devices: ["iPad Pro 11", "iPad Air"]
+    required: false
+
+# -----------------------------------------------------------------------------
+# 设备 Mockup 配置
+# -----------------------------------------------------------------------------
+device_mockups:
+  iphone_15_pro_max:
+    name: "iPhone 15 Pro Max"
+    frame_style: "titanium"
+    colors: ["natural", "blue", "white", "black"]
+    default_color: "natural"
+
+  iphone_15_pro:
+    name: "iPhone 15 Pro"
+    frame_style: "titanium"
+    colors: ["natural", "blue", "white", "black"]
+    default_color: "natural"
+
+  iphone_15:
+    name: "iPhone 15"
+    frame_style: "aluminum"
+    colors: ["pink", "yellow", "green", "blue", "black"]
+    default_color: "black"
+
+# -----------------------------------------------------------------------------
+# 预设 Prompt 模板 - 行业最佳实践
+# -----------------------------------------------------------------------------
+prompt_templates:
+
+  # =========================================================================
+  # 基础模板 - 通用 App Store 商店图
+  # =========================================================================
+  base:
+    name: "基础通用模板"
+    description: "适用于所有类型应用的通用模板"
+    template: |
+      Create a professional App Store marketing screenshot with these specifications:
+
+      [DEVICE MOCKUP]
+      - Device: {device_model} with {frame_color} frame
+      - Screen: Display the provided app screenshot
+      - Angle: {device_angle}
+      - Position: {device_position}
+      - Scale: Device should occupy 60-70% of the image height
+
+      [BACKGROUND]
+      - Style: {background_style}
+      - Primary color: {primary_color}
+      - Secondary color: {secondary_color}
+      - Effects: Subtle gradient with soft shadows
+
+      [HEADLINE TEXT]
+      - Text: "{headline_text}"
+      - Position: {text_position}
+      - Font: Bold sans-serif, modern and clean
+      - Color: {text_color}
+      - Size: Large, prominent, easily readable
+
+      [SUBHEADLINE] (if provided)
+      - Text: "{subheadline_text}"
+      - Position: Below headline
+      - Style: Lighter weight, smaller size
+
+      [QUALITY REQUIREMENTS]
+      - Resolution: {width}x{height} pixels
+      - Style: Photorealistic 3D device render
+      - Lighting: Soft studio lighting with subtle reflections
+      - Overall: Professional App Store marketing quality
+      - The device screen MUST display the exact app screenshot provided
+
+    variables:
+      device_model: "iPhone 15 Pro Max"
+      frame_color: "titanium natural"
+      device_angle: "straight, facing forward"
+      device_position: "center"
+      background_style: "gradient"
+      primary_color: "#667eea"
+      secondary_color: "#764ba2"
+      text_position: "top center"
+      text_color: "white"
+      headline_text: "Your App Name"
+      subheadline_text: ""
+      width: 1290
+      height: 2796
+
+  # =========================================================================
+  # 摄影/相机类应用模板 - 适合 PoseCam
+  # =========================================================================
+  photography:
+    name: "摄影/相机类应用"
+    description: "专为摄影、相机、图片编辑类应用设计"
+    template: |
+      Generate a stunning App Store screenshot for a photography/camera app:
+
+      [SCENE COMPOSITION]
+      - iPhone 15 Pro Max displaying the camera/photo editing interface
+      - Device tilted 8-12 degrees to the right for dynamic feel
+      - Positioned in the center-right area of the frame
+      - Device shows the exact provided screenshot on screen
+
+      [BACKGROUND DESIGN]
+      - Base: Deep charcoal (#1C1C1E) to rich black (#000000) gradient
+      - Effects: Subtle lens flare emanating from top-left corner
+      - Accent: Soft light leak effect in warm amber tones
+      - Texture: Very subtle film grain overlay (opacity 3-5%)
+
+      [HEADLINE]
+      - Text: "{headline_text}"
+      - Font: Clean sans-serif, medium-bold weight (like SF Pro Display)
+      - Color: Pure white (#FFFFFF) with subtle drop shadow
+      - Position: Top-left quadrant with generous padding (80px from edges)
+      - Size: Large, commanding presence
+
+      [DECORATIVE ELEMENTS]
+      - Floating camera aperture icon (subtle, 15% opacity) in corner
+      - Abstract light rays suggesting creative photography
+      - Optional: Small feature callouts pointing to UI elements
+
+      [TECHNICAL SPECS]
+      - Output size: {width}x{height} pixels
+      - Aspect ratio: 9:19.5 (iPhone portrait)
+      - Style: Premium, professional, artistic
+      - Mood: Creative, inspiring, sophisticated
+
+      [CRITICAL]
+      - The iPhone screen MUST show the exact app screenshot provided
+      - Maintain photorealistic device rendering quality
+      - Ensure text is crisp and readable against background
+
+    variables:
+      headline_text: "Capture Perfect Moments"
+      width: 1290
+      height: 2796
+
+    headline_options:
+      en:
+        - "Capture Perfect Moments"
+        - "Pro-Level Photos"
+        - "Your Vision, Perfected"
+        - "Photography Reimagined"
+        - "Pose Like a Pro"
+      zh:
+        - "捕捉完美瞬间"
+        - "专业级照片"
+        - "你的视觉，完美呈现"
+        - "重新定义摄影"
+        - "像专业人士一样摆姿势"
+
+  # =========================================================================
+  # 健身/健康类应用模板
+  # =========================================================================
+  fitness:
+    name: "健身/健康类应用"
+    description: "专为健身、运动、健康追踪类应用设计"
+    template: |
+      Create an energetic App Store screenshot for a fitness/health app:
+
+      [SCENE COMPOSITION]
+      - iPhone 15 Pro showing workout/health tracking interface
+      - Device tilted 10-15 degrees to the right
+      - Positioned in lower-right quadrant of the image
+      - Screen displays the exact provided app screenshot
+
+      [BACKGROUND DESIGN]
+      - Dynamic gradient: Deep navy (#1A1A2E) to dark blue (#16213E)
+      - Energy elements: Abstract wave patterns suggesting motion
+      - Accent: Electric green (#00FF88) or vibrant orange (#FF6B35) highlights
+      - Floating fitness icons at 15-20% opacity (dumbbells, heart rate, steps)
+
+      [HEADLINE]
+      - Text: "{headline_text}"
+      - Font: Bold condensed sans-serif, all caps
+      - Color: Electric accent color (green or orange)
+      - Position: Upper-left with strong diagonal energy
+      - Size: Extra large, impactful
+
+      [MOTIVATIONAL ELEMENTS]
+      - Progress ring graphics echoing app UI design
+      - Subtle particle effects suggesting energy and movement
+      - Stats callouts (optional): "+150% results" style badges
+
+      [TECHNICAL SPECS]
+      - Output size: {width}x{height} pixels
+      - Style: Energetic, motivating, powerful
+      - Mood: Active, dynamic, achievement-focused
+
+      [CRITICAL]
+      - Device screen MUST display the exact provided screenshot
+      - Colors should feel energetic but not overwhelming
+      - Overall composition should inspire action
+
+    variables:
+      headline_text: "Transform Your Body"
+      width: 1290
+      height: 2796
+
+    headline_options:
+      en:
+        - "Transform Your Body"
+        - "Track Every Rep"
+        - "Your Fitness Journey"
+        - "Crush Your Goals"
+        - "Get Stronger Daily"
+      zh:
+        - "改变你的身体"
+        - "追踪每一次训练"
+        - "你的健身之旅"
+        - "粉碎你的目标"
+        - "每天变得更强"
+
+  # =========================================================================
+  # 生产力/工具类应用模板
+  # =========================================================================
+  productivity:
+    name: "生产力/工具类应用"
+    description: "专为效率工具、笔记、任务管理类应用设计"
+    template: |
+      Generate a clean, professional App Store screenshot for a productivity app:
+
+      [SCENE COMPOSITION]
+      - iPhone 15 Pro Max displaying task/productivity interface
+      - Device straight and centered (no tilt)
+      - Perfectly centered in the frame
+      - Clean, minimal arrangement with breathing room
+
+      [BACKGROUND DESIGN]
+      - Solid color: Warm off-white (#FAFAF8) or cool gray (#F5F5F7)
+      - Optional: Very soft shadow beneath device
+      - No patterns, no distractions - white space is the feature
+      - Clean, Apple-inspired aesthetic
+
+      [HEADLINE]
+      - Text: "{headline_text}"
+      - Font: Medium-weight geometric sans-serif (SF Pro style)
+      - Color: Near-black (#1D1D1F)
+      - Position: Top center, 100-120px from top edge
+      - Size: Large but not overwhelming
+
+      [ACCENT ELEMENTS]
+      - Single thin colored line or dot matching app brand color
+      - Minimal iconography only if necessary
+      - Focus on typography and device presentation
+
+      [TECHNICAL SPECS]
+      - Output size: {width}x{height} pixels
+      - Style: Clean, trustworthy, efficient
+      - Mood: Professional, organized, calm
+
+      [CRITICAL]
+      - Device screen MUST show the exact provided screenshot
+      - Embrace minimalism - less is more
+      - Text must be perfectly legible
+
+    variables:
+      headline_text: "Simplify Your Day"
+      width: 1290
+      height: 2796
+
+    headline_options:
+      en:
+        - "Simplify Your Day"
+        - "Focus on What Matters"
+        - "Organize Everything"
+        - "Work Smarter"
+        - "Effortless Productivity"
+      zh:
+        - "简化你的一天"
+        - "专注重要的事"
+        - "整理一切"
+        - "更聪明地工作"
+        - "轻松提升效率"
+
+  # =========================================================================
+  # 社交/生活方式类应用模板
+  # =========================================================================
+  social:
+    name: "社交/生活方式类应用"
+    description: "专为社交、聊天、生活分享类应用设计"
+    template: |
+      Create a warm, inviting App Store screenshot for a social/lifestyle app:
+
+      [SCENE COMPOSITION]
+      - Two iPhone 15 Pro devices at converging angles (15-20 degrees each)
+      - Devices overlap slightly, creating depth and connection
+      - Both showing conversation/feed interfaces
+      - Positioned in center of frame
+
+      [BACKGROUND DESIGN]
+      - Vibrant gradient: Coral (#FF6B6B) to purple (#9B59B6)
+      - Or: Warm sunset tones (#F093FB to #F5576C)
+      - Soft blob shapes adding organic, friendly feel
+      - Subtle noise texture (2-3% opacity) for warmth
+
+      [HEADLINE]
+      - Text: "{headline_text}"
+      - Font: Rounded, friendly sans-serif
+      - Color: White with soft drop shadow
+      - Position: Top center
+      - Size: Large, welcoming
+
+      [DECORATIVE ELEMENTS]
+      - Floating emoji or reaction icons (hearts, likes)
+      - Abstract connection lines between devices
+      - Playful geometric shapes (circles, soft rectangles)
+      - Confetti or sparkle effects (subtle)
+
+      [TECHNICAL SPECS]
+      - Output size: {width}x{height} pixels
+      - Style: Warm, inviting, personal
+      - Mood: Connected, joyful, friendly
+
+      [CRITICAL]
+      - Both device screens MUST display provided screenshots
+      - Colors should feel warm and approachable
+      - Overall feeling should be human connection
+
+    variables:
+      headline_text: "Connect Authentically"
+      width: 1290
+      height: 2796
+
+    headline_options:
+      en:
+        - "Connect Authentically"
+        - "Share Your Story"
+        - "Stay Connected"
+        - "Your Social Space"
+        - "Moments That Matter"
+      zh:
+        - "真实连接"
+        - "分享你的故事"
+        - "保持联系"
+        - "你的社交空间"
+        - "重要的时刻"
+
+  # =========================================================================
+  # 游戏类应用模板
+  # =========================================================================
+  gaming:
+    name: "游戏类应用"
+    description: "专为手机游戏设计，强调视觉冲击力"
+    template: |
+      Generate an exciting App Store screenshot for a mobile game:
+
+      [SCENE COMPOSITION]
+      - iPhone 15 Pro Max showing gameplay screen
+      - Device tilted 15-20 degrees for dramatic effect
+      - Positioned dynamically, slightly off-center
+      - Game elements can "break out" of the device frame
+
+      [BACKGROUND DESIGN]
+      - Style matches game genre:
+        - Action: Dark with neon accents, energy effects
+        - Puzzle: Bright, colorful, playful patterns
+        - Strategy: Epic, atmospheric, cinematic
+      - Dynamic effects: Particles, light trails, explosions
+      - Game characters or elements extending beyond device
+
+      [HEADLINE]
+      - Text: "{headline_text}"
+      - Font: Bold, stylized, genre-appropriate
+      - Color: High contrast, glowing effects allowed
+      - Position: Integrated with composition
+      - Size: Impactful, eye-catching
+
+      [GAME ELEMENTS]
+      - Characters or game assets floating around device
+      - Achievement badges or reward indicators
+      - "Play Now" or "Free to Play" call-to-action badges
+      - Rating stars or review highlights
+
+      [TECHNICAL SPECS]
+      - Output size: {width}x{height} pixels
+      - Style: Exciting, immersive, action-packed
+      - Mood: Fun, engaging, must-play
+
+      [CRITICAL]
+      - Device screen MUST show actual gameplay
+      - Visual effects should enhance, not overwhelm
+      - Clear hierarchy: game content > text > effects
+
+    variables:
+      headline_text: "Epic Adventure Awaits"
+      width: 1290
+      height: 2796
+
+    headline_options:
+      en:
+        - "Epic Adventure Awaits"
+        - "Play Now Free"
+        - "Join Millions of Players"
+        - "Challenge Yourself"
+        - "Endless Fun"
+      zh:
+        - "史诗冒险等你来"
+        - "免费开玩"
+        - "加入百万玩家"
+        - "挑战自己"
+        - "无尽乐趣"
+
+  # =========================================================================
+  # 金融/商务类应用模板
+  # =========================================================================
+  finance:
+    name: "金融/商务类应用"
+    description: "专为银行、投资、财务管理类应用设计"
+    template: |
+      Create a trustworthy App Store screenshot for a finance/business app:
+
+      [SCENE COMPOSITION]
+      - iPhone 15 Pro Max showing financial dashboard/interface
+      - Device straight, slight upward tilt (5 degrees max)
+      - Centered with authoritative presence
+      - Professional, institutional quality
+
+      [BACKGROUND DESIGN]
+      - Base: Deep navy (#0A1628) or forest green (#1B4332)
+      - Accent: Gold (#D4AF37) or silver gradients
+      - Pattern: Subtle geometric grid suggesting data/charts
+      - Texture: Premium matte finish appearance
+
+      [HEADLINE]
+      - Text: "{headline_text}"
+      - Font: Serif or premium sans-serif, medium weight
+      - Color: White or gold accent
+      - Position: Top center, formal placement
+      - Size: Confident but not aggressive
+
+      [TRUST ELEMENTS]
+      - Security badge or lock icon (subtle)
+      - "Bank-level Security" or similar trust indicator
+      - Clean data visualizations echoing app
+      - Professional, corporate aesthetic
+
+      [TECHNICAL SPECS]
+      - Output size: {width}x{height} pixels
+      - Style: Premium, trustworthy, secure
+      - Mood: Confident, professional, reliable
+
+      [CRITICAL]
+      - Device screen MUST show provided financial interface
+      - Design must convey security and trust
+      - Avoid flashy effects - sophistication is key
+
+    variables:
+      headline_text: "Your Money, Simplified"
+      width: 1290
+      height: 2796
+
+    headline_options:
+      en:
+        - "Your Money, Simplified"
+        - "Smart Financial Decisions"
+        - "Secure & Simple"
+        - "Take Control"
+        - "Invest with Confidence"
+      zh:
+        - "你的财务，简单掌控"
+        - "智能财务决策"
+        - "安全又简单"
+        - "掌控一切"
+        - "自信投资"
+
+# -----------------------------------------------------------------------------
+# 多语言配置
+# -----------------------------------------------------------------------------
+localization:
+  default_language: "en"
+  supported_languages:
+    - code: "en"
+      name: "English"
+      app_store_code: "en-US"
+    - code: "zh"
+      name: "简体中文"
+      app_store_code: "zh-Hans"
+    - code: "zh-TW"
+      name: "繁體中文"
+      app_store_code: "zh-Hant"
+    - code: "ja"
+      name: "日本語"
+      app_store_code: "ja"
+    - code: "ko"
+      name: "한국어"
+      app_store_code: "ko"
+
+# -----------------------------------------------------------------------------
+# 输出配置
+# -----------------------------------------------------------------------------
+output:
+  format: "png"
+  quality: 95
+  naming_pattern: "{app_name}_{locale}_{size}_{index}.png"
+  organize_by_locale: true

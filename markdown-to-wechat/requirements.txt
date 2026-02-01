@@ -1,0 +1,35 @@
+# Markdown to WeChat Converter - Python Dependencies
+
+# Core markdown parser
+mistune>=3.0.2
+
+# CSS inliner for email/wechat compatibility
+premailer>=3.10.0
+
+# Code syntax highlighting
+Pygments>=2.17.2
+
+# HTML parsing and manipulation
+beautifulsoup4>=4.12.3
+lxml>=5.1.0
+
+# Image processing (optional, for future image optimization)
+Pillow>=10.2.0
+
+# Clipboard operations
+pyperclip>=1.8.2
+
+# YAML configuration parsing
+PyYAML>=6.0.1
+
+# CLI tool framework
+click>=8.1.7
+
+# CSS utilities
+cssutils>=2.9.0
+
+# HTML 转图片功能（可选依赖）
+# 如果需要使用 --to-image 参数，请额外安装：
+# pip install playwright
+# playwright install chromium
+playwright>=1.40.0

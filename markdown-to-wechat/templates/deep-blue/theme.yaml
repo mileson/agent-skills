@@ -1,0 +1,119 @@
+name: "深蓝色主题"
+description: "专业商务风格的深蓝色主题，适合正式内容和商务文章，彰显稳重与专业"
+version: "1.0.0"
+
+colors:
+  primary: "#1E6FBA"
+  secondary: "#2E8BCF"
+  accent: "#0F4C81"
+  text_primary: "#333333"
+  text_secondary: "#666666"
+  text_light: "#999999"
+  text_link: "#1E6FBA"
+  bg_primary: "#ffffff"
+  bg_secondary: "#f5f8fa"
+  
+  # 代码块 - 紧凑风格高质感灰
+  bg_code: "#F7F8FA"
+  bg_code_dark: "#2C2D30"
+  code_line_number_bg: "#E8E9EB"
+  code_line_number_text: "#8F959E"
+  code_border: "#E1E3E6"
+  code_header_bg: "#F3F4F6"         # 代码块标题背景
+  code_header_text: "#6B7280"       # 代码块标题文字
+  
+  # 引用块 - 简约风格
+  bg_quote: "transparent"           # 透明背景
+  quote_line_color: "#D1D5DB"       # 细灰色竖线（Tailwind gray-300）
+  quote_text_color: "#6B7280"       # 浅灰色文字（Tailwind gray-500）
+  quote_border: "#D1D5DB"           # 边框色（兼容）
+  quote_icon_color: "#8F959E"
+  
+  # 表格 - 简约风格（表头灰，内容白）
+  table_bg: "#ffffff"               # 表格内容背景：白色
+  table_header_bg: "#F3F4F6"        # 表头背景：浅灰（Tailwind gray-100）
+  table_border: "#E5E7EB"           # 表格边框：细灰（Tailwind gray-200）
+  
+  # 列表 - 蓝色标记
+  list_marker_color: "#1E6FBA"      # 列表序号/圆点颜色：主题蓝
+  
+  # 分割线
+  divider_color: "#E5E7EB"          # 分割线颜色：细灰
+  
+  # 标题装饰
+  heading_number_color: "#0D9488"   # 标题编号颜色：深青色（Tailwind teal-600）
+  heading_bar_start: "#0D9488"      # H2 渐变条起始色：深青
+  heading_bar_end: "#5EEAD4"        # H2 渐变条结束色：浅青（Tailwind teal-300）
+  
+  bg_table_header: "#e8f2f8"
+  bg_table_row_alt: "#f5f8fa"
+  border: "#a8d1ec"
+  border_light: "#d4e8f4"
+  border_strong: "#1E6FBA"
+  
+  # 强调色 - 淡橙色系
+  highlight_bg: "#FFF3E0"
+  highlight_color: "#FF9800"
+  highlight_border: "#FFB74D"
+
+typography:
+  font_family: "PingFang SC, Hiragino Sans GB, Microsoft YaHei, -apple-system, BlinkMacSystemFont, sans-serif"
+  font_family_code: "Consolas, Monaco, Menlo, Courier New, monospace"
+  font_size_base: 15
+  font_size_h1: 22
+  font_size_h2: 22  # 增大 H2（从 19 → 22，约 +16%，接近 30% 区别于 H3）
+  font_size_h3: 17
+  font_size_h4: 16
+  font_size_code: 14
+  font_size_small: 13
+  font_size_footnote: 12
+  line_height: 1.8
+  line_height_heading: 1.5
+  line_height_code: 1.6
+  letter_spacing: 0.5
+  letter_spacing_heading: 1.5
+  paragraph_spacing: 18
+  text_indent: 0
+  padding_horizontal: 16
+
+spacing:
+  section_margin: 36
+  element_margin: 18
+  list_indent: 26
+  quote_padding: 18
+  code_padding: 14
+  table_cell_padding: 10
+
+wechat_optimization:
+  max_image_width: 677
+  max_image_size_mb: 10
+  enable_lazy_load: false
+  link_to_footnote: true  # 外部链接转脚注（微信公众号推荐）
+  inline_all_styles: true
+  remove_classes: false  # 保留 class 属性，微信编辑器需要
+  strip_javascript: true
+  fix_list_nesting: true
+
+code_highlight:
+  enabled: true
+  style: "default"  # 使用 default 主题（浅色背景适用）
+  show_line_numbers: true
+  line_number_start: 1
+  
+border_radius:
+  small: 4
+  medium: 8
+  large: 12
+  image: 12
+  code_block: 8
+  quote_block: 8
+  table: 6
+
+features:
+  enable_toc: false
+  enable_math: false
+  enable_mermaid: false
+  enable_footnotes: true
+  enable_tables: true
+  enable_task_lists: true
+  enable_strikethrough: true

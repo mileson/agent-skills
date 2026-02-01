@@ -1,0 +1,105 @@
+{
+    "platforms": [
+      {
+        "id": "wechat",
+        "display_name": "微信公众号",
+        "audience": "广泛但偏专业，重知识深度与干货",
+        "tone": "正式、可信、适量故事化",
+        "length": "1500-3000 字",
+        "title_prefix": "",
+        "format_rules": ["段落 3-5 行", "首段引痛点", "图片占位符如`[图片:配图主题意向内容与目的]`", "结尾行动号召"],
+        "humanization": "错别字 ≤ 3，保留专业术语，不要破折号，冒号，双引号，不要过度分行，采用自然段的形式输出"
+      },
+      {
+        "id": "xhs",
+        "display_name": "小红书",
+        "audience": "18-35 岁年轻女性，以及年轻互联网、白领男性用户为主，注重品质与审美",
+        "tone": "第一人称 + Emoji，故事化分享",
+        "length": "300-800 字",
+        "title_prefix": "【体验】/【避坑】等",
+        "format_rules": ["钩子开头", "3-5 行分段", "#话题 标签"],
+        "humanization": "每 200 字 ≥ 1 错别字，少用公式化过渡词，不要破折号，冒号，双引号，不要过度分行，采用自然段的形式输出"
+      },
+      {
+        "id": "jike",
+        "display_name": "即刻",
+        "audience": "技术/创意社区，追求信息密度",
+        "tone": "犀利、轻幽默，可用梗",
+        "length": "≤ 300 字",
+        "title_prefix": "",
+        "format_rules": ["≤3 段", "链接贴在段落", "结尾提问"],
+        "humanization": "偶尔拼错外来词营造口语感，不要破折号，冒号，双引号，不要过度分行，采用自然段的形式输出"
+      },
+      {
+        "id": "zhihu",
+        "display_name": "知乎",
+        "audience": "知识分享与专业讨论人群",
+        "tone": "专业、逻辑清晰，适当幽默",
+        "length": "1000-5000 字",
+        "title_prefix": "",
+        "format_rules": ["提出问题/观点", "分点阐述", "引用数据与文献"],
+        "humanization": "错别字 ≤ 2，保持引用准确，不要破折号，冒号，双引号，不要过度分行，采用自然段的形式输出"
+      },
+      {
+        "id": "twitter",
+        "display_name": "Twitter/X",
+        "audience": "全球互联网用户，信息密集型",
+        "tone": "简洁、有趣，使用 hashtag",
+        "length": "≤ 280 字",
+        "title_prefix": "",
+        "format_rules": ["线程化写作", "Strategic hashtag", "混排 GIF/图片/视频"],
+        "humanization": "适度缩写与俚语，不要破折号，冒号，双引号，不要过度分行，采用自然段的形式输出"
+      },
+      {
+        "id": "linkedin",
+        "display_name": "LinkedIn",
+        "audience": "职场与 B2B 专业人士",
+        "tone": "可信、数据驱动、真诚专业",
+        "length": "文本帖 500-1500 字；短视频 < 2 分钟",
+        "title_prefix": "",
+        "format_rules": ["开头价值陈述", "纵向视频或图文", "含案例与指标", "每周 2-5 更"],
+        "humanization": "有限 Emoji，强调实证与故事，不要破折号，冒号，双引号，不要过度分行，采用自然段的形式输出"
+      },
+      {
+        "id": "douyin",
+        "display_name": "抖音",
+        "audience": "大众短视频受众，追求强节奏与情绪",
+        "tone": "口语化、情绪高频",
+        "length": "视频标题 15-20 字",
+        "title_prefix": "",
+        "format_rules": ["首句悬念/痛点", "强情绪词", "号召双击关注"],
+        "humanization": "口语缩写与网络流行语，不要破折号，冒号，双引号，不要过度分行，采用自然段的形式输出"
+      },
+      {
+        "id": "bilibili",
+        "display_name": "哔哩哔哩",
+        "audience": "二次元与年轻泛娱乐人群",
+        "tone": "轻松、梗文化、互动弹幕友好",
+        "length": "视频简介 60-200 字",
+        "title_prefix": "",
+        "format_rules": ["描述关键词前置", "结尾求三连", "话题标签"],
+        "humanization": "弹幕口吻+圈内梗，不要破折号，冒号，双引号，不要过度分行，采用自然段的形式输出"
+      },
+      {
+        "id": "instagram",
+        "display_name": "Instagram",
+        "audience": "全球视觉社交用户，偏时尚与生活方式",
+        "tone": "简洁、视觉导向、表情多",
+        "length": "Caption 100-150 字",
+        "title_prefix": "",
+        "format_rules": ["Emoji 分行", "结尾 CTA", "最多 30 个 hashtag"],
+        "humanization": "中英文混排、口语化缩写，不要破折号，冒号，双引号，不要过度分行，采用自然段的形式输出"
+      }
+    ],
+    "common_fields": {
+      "id": "平台内部唯一标识，用于文件命名",
+      "display_name": "平台中文显示名",
+      "audience": "目标受众描述",
+      "tone": "文案基调",
+      "length": "推荐字数/篇幅",
+      "title_prefix": "可选前缀/标签",
+      "format_rules": "平台排版与标签要点（数组）",
+      "humanization": "错别字或口语化策略，不要破折号，冒号，双引号，不要过度分行，采用自然段的形式输出"
+    }
+  }
+  
