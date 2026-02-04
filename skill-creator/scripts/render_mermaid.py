@@ -155,6 +155,50 @@ def render_with_mermaidink_svg(mermaid_code: str, output_path: str) -> bool:
         return False
 
 
+def generate_sequential_filename(output_dir: str, skill_desc: str) -> str:
+    """
+    生成带序号的文件名，自动递增避免冲突
+    
+    Args:
+        output_dir: 输出目录
+        skill_desc: Skill 的一句话描述
+        
+    Returns:
+        完整的文件路径（带序号）
+        
+    Example:
+        >>> generate_sequential_filename("/path", "新闻资讯总结")
+        "/path/skill-新闻资讯总结_001.png"
+        
+        # 如果文件已存在，自动递增
+        >>> generate_sequential_filename("/path", "新闻资讯总结")
+        "/path/skill-新闻资讯总结_002.png"
+    """
+    # 确保输出目录存在
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # 搜索现有文件，找到最大序号
+    pattern = f"skill-{skill_desc}_*.png"
+    existing_files = list(Path(output_dir).glob(pattern))
+    
+    max_seq = 0
+    for file in existing_files:
+        # 提取序号: skill-描述_001.png -> 001
+        try:
+            seq_str = file.stem.split('_')[-1]  # 获取最后一个下划线后的部分
+            seq = int(seq_str)
+            max_seq = max(max_seq, seq)
+        except (ValueError, IndexError):
+            # 文件名格式不匹配，跳过
+            continue
+    
+    # 生成新序号
+    new_seq = max_seq + 1
+    filename = f"skill-{skill_desc}_{new_seq:03d}.png"
+    
+    return os.path.join(output_dir, filename)
+
+
 def open_preview(file_path: str) -> None:
     """打开图片预览"""
     try:
@@ -172,7 +216,8 @@ def render_mermaid(
     mermaid_code: str,
     output_path: str = None,
     auto_open: bool = True,
-    output_dir: str = None
+    output_dir: str = None,
+    skill_desc: str = None
 ) -> str:
     """
     渲染 Mermaid 代码为 PNG 图片
@@ -182,6 +227,7 @@ def render_mermaid(
         output_path: 输出文件路径，默认为时间戳文件名
         auto_open: 是否自动打开预览
         output_dir: 输出目录，默认为 skill-creator/mermaid-imgs/
+        skill_desc: Skill 的一句话描述，用于生成带序号的文件名
 
     Returns:
         生成的图片文件路径
@@ -195,8 +241,13 @@ def render_mermaid(
 
     # 确定输出路径
     if output_path is None:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = os.path.join(output_dir, f"skill-plan-{timestamp}.png")
+        if not skill_desc:
+            print("错误: 必须提供 --skill-desc 参数来指定 skill 描述", file=sys.stderr)
+            print("示例: --skill-desc \"新闻资讯总结\"", file=sys.stderr)
+            sys.exit(1)
+        
+        # 使用 skill 描述生成带序号的文件名
+        output_path = generate_sequential_filename(output_dir, skill_desc)
 
     output_path = os.path.expanduser(output_path)
     output_path = os.path.abspath(output_path)
@@ -261,6 +312,10 @@ def main():
         help=f"输出目录（默认: {DEFAULT_OUTPUT_DIR}）"
     )
     parser.add_argument(
+        "--skill-desc",
+        help="Skill 的一句话描述，用于生成带序号的文件名（如: 新闻资讯总结）"
+    )
+    parser.add_argument(
         "--no-open",
         action="store_true",
         help="不自动打开预览"
@@ -287,7 +342,8 @@ def main():
         mermaid_code,
         output_path=args.output,
         auto_open=not args.no_open,
-        output_dir=args.output_dir
+        output_dir=args.output_dir,
+        skill_desc=args.skill_desc
     )
 
 

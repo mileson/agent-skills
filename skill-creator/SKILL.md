@@ -277,16 +277,26 @@ When showing the Mermaid flow diagram for user confirmation, use the bundled scr
 When the skill directory does NOT exist yet (during confirmation flow):
 
 ```bash
-# From inline code - outputs to skill-creator/mermaid-imgs/ (default)
+# MANDATORY: 必须提供 --skill-desc 参数
+# 根据当前讨论的 skill 生成一句话描述（3-8 个字，简洁明了）
 python3 ~/.claude/skills/skill-creator/scripts/render_mermaid.py \
-  -c "graph TB; A-->B"
+  -c "graph TB; A-->B" \
+  --skill-desc "新闻资讯总结"
+
+# 生成的文件名示例: skill-新闻资讯总结_001.png
+# 如果再次运行，自动递增: skill-新闻资讯总结_002.png
 
 # Or from file
 python3 ~/.claude/skills/skill-creator/scripts/render_mermaid.py \
-  -f <path-to-mermaid-file>
+  -f <path-to-mermaid-file> \
+  --skill-desc "API接口生成"
 ```
 
-The image will be saved to `skill-creator/mermaid-imgs/` with timestamp filename.
+**文件命名规则**:
+- **MANDATORY**: 必须提供 `--skill-desc` 参数
+- 格式: `skill-{描述}_{序号}.png` (自动递增序号)
+
+**重要**: Agent 必须根据当前讨论的 skill 内容，生成一个简洁的中文描述（3-8 个字），传入 `--skill-desc` 参数。这样可以让生成的图片文件名具有语义化，便于后续查找和管理。
 
 **STAGE 2 - After Skill Creation (Documentation)**
 
@@ -296,11 +306,19 @@ Only AFTER the skill directory exists, you can output to the skill folder:
 # Output to the created skill's folder (for documentation)
 python3 ~/.claude/skills/skill-creator/scripts/render_mermaid.py \
   -c "graph TB; A-->B" \
+  --skill-desc "数据库迁移" \
   -o ~/.claude/skills/<skill-name>/workflow-diagram.png
 ```
 
 - **Script location**: `~/.claude/skills/skill-creator/scripts/render_mermaid.py`
-- **Default output**: `skill-creator/mermaid-imgs/skill-plan-TIMESTAMP.png`
+- **Default output**: `skill-creator/mermaid-imgs/skill-{描述}_{序号}.png`
+- **命名示例**:
+  ```
+  skill-新闻资讯总结_001.png
+  skill-新闻资讯总结_002.png  # 自动递增
+  skill-API接口生成_001.png
+  ```
+- **MANDATORY**: 必须提供 `--skill-desc` 参数，否则脚本会报错
 - **Dependencies**: Requires internet connection (uses Kroki API with fallback)
 - **Auto-preview**: Opens the rendered image automatically
 - **中文支持**: Kroki API 完全支持中文字符，可直接使用中文编写 Mermaid 代码
