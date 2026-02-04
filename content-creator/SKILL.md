@@ -92,10 +92,9 @@ hooks:
 
 ```
 [文章工作区]/                   # 用户打开的工作区文件夹
-├── Materials/                  # 输入：所有原始内容（用户提供）
-│   ├── origin.md              # 主素材文件
-│   └── Medias/                # 媒体资源（可选）⭐
-│       └── images/            # 图片文件
+├── Materials/                  # 输入：原始素材（用户提供）
+│   └── origin.md              # 主素材文件
+├── Medias/images/             # 输入：媒体资源（可选）
 └── Output/                    # 输出：所有生成内容（自动创建）
     ├── _drafts/               # 中间产物
     │   ├── 00_extracted_meta.yaml
@@ -145,7 +144,7 @@ hooks:
 
 ### 图片扫描工具（scan_images.py）⭐
 
-**用途**：自动扫描工作区的 `Materials/Medias/images/` 目录，列出所有图片文件
+**用途**：自动扫描工作区的 `Medias/images/` 目录，列出所有图片文件
 
 **位置**：`~/.cursor/skills/content-creator/scripts/scan_images.py`
 
@@ -158,7 +157,7 @@ python3 ~/.cursor/skills/content-creator/scripts/scan_images.py [工作区路径
 # 输出示例：
 ## 图片扫描结果
 - 工作区: `/Users/xxx/my-article`
-- 图片目录: `/Users/xxx/my-article/Materials/Medias/images`
+- 图片目录: `/Users/xxx/my-article/Medias/images`
 - 目录存在: ✅ 是
 - 图片总数: **5** 张
 
@@ -177,9 +176,9 @@ python3 ~/.cursor/skills/content-creator/scripts/scan_images.py [工作区路径
 ### 步骤 1：准备工作区
 ```bash
 mkdir "我的文章标题" && cd "我的文章标题"
-mkdir -p Materials/Medias/images
+mkdir -p Materials Medias/images
 echo "原始内容..." > Materials/origin.md
-# 将图片文件放到 Materials/Medias/images/ 目录
+# 将图片文件放到 Medias/images/ 目录
 ```
 
 ### 步骤 2：执行 Skill

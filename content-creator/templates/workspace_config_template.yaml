@@ -1,0 +1,139 @@
+# ==================== 工作区配置模板 ====================
+# 文件：workspace.config.yaml
+# 版本：v1.0
+# 说明：content-creator skill 工作区状态追踪文件
+# 生成时机：阶段 0 完成后自动生成
+# =====================================================
+
+# ==================== 工作区基本信息 ====================
+workspace:
+  # 工作区名称（建议使用文章标题或主题）
+  name: ""
+  
+  # 创建时间（ISO 8601 格式）
+  created_at: ""
+  
+  # 工作区描述（可选）
+  description: ""
+
+
+# ==================== 素材信息 ====================
+materials:
+  # 主素材文件路径
+  primary_source: "Materials/origin.md"
+  
+  # 总字数
+  total_word_count: 0
+  
+  # 所有素材文件列表
+  files: []
+  
+  # 素材质量评估（可选）
+  quality:
+    completeness: ""    # 完整性：low/medium/high
+    clarity: ""         # 清晰度：low/medium/high
+
+
+# ==================== 媒体资源信息 ====================
+medias:
+  # 图片资源
+  images:
+    count: 0                      # 图片数量
+    total_size: ""                # 总大小（如 "2.5MB"）
+    files: []                     # 图片文件列表
+    
+  # 视频资源（可选）
+  videos:
+    count: 0
+    total_duration: ""            # 总时长（如 "5:30"）
+    files: []
+
+
+# ==================== 目标平台 ====================
+# 可选平台：xhs（小红书）、wechat（微信公众号）、zhihu（知乎）、
+#          jike（即刻）、twitter、linkedin、douyin（抖音）、
+#          bilibili（B站）、instagram
+target_platforms: []
+
+
+# ==================== 生成状态 ====================
+# 状态说明：
+#   - initialized: 工作区已初始化
+#   - extraction_completed: 元数据提取完成（阶段 0）
+#   - topic_selected: 选题已选择（阶段 1）
+#   - outline_confirmed: 大纲已确认（阶段 2）
+#   - script_confirmed: 写作剧本已确认（阶段 3）
+#   - draft_completed: 初稿完成（阶段 4）
+#   - scoring_completed: 评分完成（阶段 5）
+#   - adaptation_completed: 多平台适配完成（阶段 6）
+#   - completed: 全部完成
+generation_status: "initialized"
+
+
+# ==================== 执行历史 ====================
+# 记录每个阶段的执行时间和关键决策
+history:
+  # 示例：
+  # - stage: extraction
+  #   completed_at: "2026-02-04T10:05:00Z"
+  #   notes: "提取了 5000 字素材"
+  # 
+  # - stage: topic_selection
+  #   completed_at: "2026-02-04T10:10:00Z"
+  #   selected: "方案A"
+  #   notes: "选择了新手成长故事型选题"
+  # 
+  # - stage: title_selection
+  #   completed_at: "2026-02-04T10:15:00Z"
+  #   selected: "标题2"
+  #   notes: "标题吸引力评分 9/10"
+
+
+# ==================== 质量追踪 ====================
+# 记录各阶段的质量评分（可选）
+quality_tracking:
+  # 初稿评分（阶段 5）
+  draft_v1:
+    score: 0.0           # 10 分制
+    weak_points: []      # 低分维度
+    strong_points: []    # 高分维度
+    
+  # 优化后评分（如有）
+  draft_v2:
+    score: 0.0
+    improvements: []     # 改进项
+
+
+# ==================== 输出文件清单 ====================
+# 自动生成的文件列表（用于追踪）
+outputs:
+  # 中间产物
+  drafts:
+    - "Output/_drafts/00_extracted_meta.yaml"
+    - "Output/_drafts/01_topic_proposals.md"
+    - "Output/_drafts/02_titles_and_outline.md"
+    - "Output/_drafts/03_writing_plan.md"
+    - "Output/_drafts/04_draft.md"
+    - "Output/_drafts/05_quality_score_v1.md"
+  
+  # 平台版本（根据 target_platforms 动态生成）
+  platforms: {}
+    # 示例：
+    # xhs:
+    #   - "Output/xhs/article.md"
+    #   - "Output/xhs/compliance-report.json"
+    # wechat:
+    #   - "Output/wechat/article.md"
+    #   - "Output/wechat/article.html"
+
+
+# ==================== 配置元信息 ====================
+meta:
+  # 配置版本
+  version: "1.0"
+  
+  # 生成工具
+  generator: "content-creator"
+  
+  # 最后更新时间
+  last_updated: ""

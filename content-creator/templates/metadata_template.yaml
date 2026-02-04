@@ -1,0 +1,235 @@
+# ==================== 元数据模板 ====================
+# 文件：00_extracted_meta.yaml
+# 版本：v1.0
+# 说明：content-creator skill 阶段 0 的标准输出格式
+# =====================================================
+
+# ==================== 核心信息 ====================
+# 描述：定义内容的基本属性和目标
+
+# 目标受众：描述你的理想读者画像
+# 示例："AI编程爱好者、前端开发者、技术管理者"
+audience: ""
+
+# 创作目的：明确本文的核心目标
+# 示例："分享技术教程，提升个人影响力"
+purpose: ""
+
+# 品牌语调：定义你的表达风格
+# 示例："专业但不失幽默、平易近人"
+brand_voice: ""
+
+# 写作风格：描述文章的呈现方式
+# 示例："逻辑清晰、案例丰富、实战导向"
+writing_style: ""
+
+
+# ==================== 热点话题 ====================
+# 描述：列出本文涉及的热点话题（3-5个）
+# 说明：这些话题将用于选题策划和标题优化
+
+trending_topics:
+  - ""  # 示例：AI编程工具
+  - ""  # 示例：Cursor使用技巧
+  - ""  # 示例：前端性能优化
+
+
+# ==================== 核心要点 ====================
+# 描述：列出文章的核心观点（3-5个）
+# 说明：这些要点将贯穿整篇文章
+
+key_points:
+  - ""  # 示例：介绍最新的AI编程工具特性
+  - ""  # 示例：提供实际开发场景的解决方案
+  - ""  # 示例：分享个人踩坑经验和最佳实践
+
+
+# ==================== 人性化策略 ====================
+# 描述：定义内容的人性化呈现方式
+# 说明：让内容更有"人味"，避免AI腔
+
+humanization:
+  # 允许的错别字数量（微信≤3个，小红书每200字≥1个）
+  typos:
+    wechat: 3
+    xhs: 5  # 按文章字数自动计算
+  
+  # 去除的正式连接词（如"首先"、"其次"、"最后"）
+  remove_formal_connectors: true
+  
+  # 保留的口语化表达（如"其实"、"说实话"、"坦白说"）
+  keep_colloquial: true
+  
+  # 允许的情绪表达（如"太爽了！"、"真的绝了"）
+  allow_emotions: true
+
+
+# ==================== 文章结构 ====================
+# 描述：定义文章的组织结构
+# 说明：可选值见下方注释
+
+structure:
+  # 文章类型：tutorial（教程）、case_study（案例）、review（评测）、opinion（观点）
+  type: "tutorial"
+  
+  # 叙事模式：linear（线性）、problem_solution（问题-解决）、story（故事型）
+  narrative: "problem_solution"
+  
+  # 开篇方式：hook（钩子）、question（疑问）、story（故事）、data（数据）
+  opening: "hook"
+  
+  # 结尾方式：summary（总结）、cta（行动呼吁）、question（反问）、future（展望）
+  closing: "cta"
+
+
+# ==================== SEO 设置 ====================
+# 描述：搜索引擎优化配置
+# 说明：提升内容在搜索引擎中的可见性
+
+seo:
+  # 主关键词（1-2个）
+  primary_keywords:
+    - ""  # 示例：AI编程
+    - ""  # 示例：Cursor教程
+  
+  # 次要关键词（3-5个）
+  secondary_keywords:
+    - ""  # 示例：代码生成
+    - ""  # 示例：开发效率
+    - ""  # 示例：编程工具
+  
+  # 元描述（150字以内）
+  meta_description: ""
+
+
+# ==================== 目标平台 ====================
+# 描述：选择发布平台（xhs/wechat/zhihu/jike/twitter 等）
+# 说明：每个平台有不同的内容适配规则
+
+publish_platforms:
+  - xhs        # 小红书
+  - wechat     # 微信公众号
+  # - zhihu      # 知乎
+  # - jike       # 即刻
+  # - twitter    # Twitter
+  # - linkedin   # LinkedIn
+  # - douyin     # 抖音
+  # - bilibili   # B站
+  # - instagram  # Instagram
+
+
+# ==================== 资源需求 ====================
+# 描述：文章所需的媒体资源
+# 说明：用于图片、视频等素材的准备
+
+assets:
+  images:
+    count: 0              # 图片数量
+    types: []             # 图片类型（截图、流程图、对比图等）
+    required: false       # 是否必需
+  
+  videos:
+    count: 0              # 视频数量
+    duration: ""          # 视频时长
+    required: false       # 是否必需
+  
+  code_examples:
+    count: 0              # 代码示例数量
+    languages: []         # 编程语言（Python、JavaScript 等）
+
+
+# ==================== 质量目标 ====================
+# 描述：设定内容质量标准
+# 说明：用于阶段 5 的爆款潜力评分
+
+quality_targets:
+  # 爆款评分最低要求（满分 10 分）
+  # 低于此分数将自动触发优化流程
+  min_score: 8.0
+  
+  # 可读性等级：low（低）、medium（中）、high（高）
+  # 确保普通读者也能理解
+  readability: high
+  
+  # 互动性：low（低）、medium（中）、high（高）、very_high（极高）
+  # 争取高互动（评论、点赞、转发）
+  engagement: very_high
+  
+  # 传播潜力：low（低）、medium（中）、high（高）
+  # 评估内容的病毒式传播能力
+  viral_potential: high
+
+
+# ==================== 输出约束 ====================
+# 描述：定义文章的输出规格
+# 说明：字数、格式等硬性要求
+
+output_constraints:
+  # 字数范围
+  word_count:
+    min: 2000       # 最少字数
+    max: 5000       # 最多字数
+    target: 3000    # 目标字数
+  
+  # 段落要求
+  paragraph:
+    max_length: 200       # 每段最多字数
+    min_sentences: 2      # 每段最少句子数
+  
+  # 格式要求
+  formatting:
+    use_markdown: true         # 使用 Markdown 格式
+    use_emoji: true            # 使用 emoji（适用于小红书）
+    use_bold: true             # 使用粗体强调
+    use_code_blocks: true      # 使用代码块
+
+
+# ==================== 素材使用策略 ====================
+# 描述：定义如何使用不同素材文件（可选）
+# 说明：当有多个素材文件时，明确各自用途
+
+material_allocation:
+  - file: "origin.md"
+    usage: "主要内容来源"
+    focus_sections: []
+  
+  # 示例：多素材文件场景
+  # - file: "origin.md【分享会记录】"
+  #   usage: "提取案例细节、数据、金句"
+  #   focus_sections:
+  #     - "核心案例"
+  #     - "关键数据"
+  # 
+  # - file: "origin2.md【框架】"
+  #   usage: "作为整体结构骨架"
+  #   focus_sections:
+  #     - "章节划分"
+  #     - "标题定位"
+
+
+# ==================== 待确认事项 ====================
+# 描述：需要用户确认或补充的事项（可选）
+# 说明：在生成过程中需要用户决策的内容
+
+items_to_confirm:
+  - item: ""
+    options: []
+  
+  # 示例：
+  # - item: "标题风格偏好"
+  #   options:
+  #     - "数字型（5分钟学会...）"
+  #     - "反差型（从小白到...）"
+  #     - "揭秘型（你不知道的...）"
+
+
+# ==================== 元信息 ====================
+# 描述：元数据生成信息（自动填充）
+# 说明：由系统自动生成，无需手动填写
+
+meta:
+  version: "1.0"                      # 元数据版本
+  generated_at: ""                    # 生成时间（ISO 8601 格式）
+  generated_by: "content-creator"     # 生成工具
+  workspace: ""                       # 工作区路径
+  materials_source: "Materials/origin.md"  # 主素材来源

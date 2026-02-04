@@ -1,0 +1,11 @@
+# content-creator skill 依赖库
+# 安装方式：pip3 install --user -r requirements.txt
+
+# YAML 处理
+pyyaml>=6.0
+
+# 终端美化展示
+rich>=13.0.0
+
+# 可选：增强的 YAML 格式化
+# ruamel.yaml>=0.17.0
