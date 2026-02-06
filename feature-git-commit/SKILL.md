@@ -1,6 +1,6 @@
 ---
 name: feature-git-commit
-description: 生成功能导向的 Git Commit 信息，聚焦用户价值而非代码实现
+description: 生成功能导向的 Git Commit 信息并自动推送，聚焦用户价值而非代码实现
 disable-model-invocation: true
 ---
 
@@ -59,12 +59,13 @@ Commit 信息应描述**用户能感知的变化**，而非技术实现细节。
 3. 使用动作词开头，聚焦问题/功能本身
 4. **总结标题**：将所有条目概括为一句简短标题（不超过 20 字符）
 5. **自动执行** `git commit -m "<标题>\n\n<内容>"`（无需二次确认）
+6. **自动推送** `git push`（commit 成功后立即执行）
 
 ## 执行约束
 
-- **仅执行 Commit**：本 skill 只负责生成 commit 信息并执行 `git commit`，**禁止执行 `git push`**
-- **自动提交**：生成 commit 信息后自动执行提交，无需询问用户确认
-- **静默结束**：提交完成后直接结束，**不要询问用户是否需要 push**
+- **Commit + Push**：commit 成功后自动执行 `git push`，全程无需用户确认
+- **推送失败处理**：若 push 失败，显示错误信息供用户排查，不自动重试
+- **静默结束**：push 完成后直接结束
 
 ## Commit 信息格式
 
