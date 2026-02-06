@@ -23,7 +23,7 @@ equipped with procedural knowledge that no model can fully possess.
 1. Specialized workflows - Multi-step procedures for specific domains
 2. Tool integrations - Instructions for working with specific file formats or APIs
 3. Domain expertise - Company-specific knowledge, schemas, business logic
-4. Bundled resources - Scripts, references, and assets for complex and repetitive tasks
+4. Bundled resources - Scripts, examples, templates, and references for complex and repetitive tasks
 
 ## Core Principles
 
@@ -53,16 +53,16 @@ Every skill consists of a required SKILL.md file and optional bundled resources:
 
 ```
 skill-name/
-├── SKILL.md (required)
-│   ├── YAML frontmatter metadata (required)
-│   │   ├── name: (required)
-│   │   └── description: (required)
-│   └── Markdown instructions (required)
-└── Bundled Resources (optional)
-    ├── scripts/          - Executable code (Python/Bash/etc.)
-    ├── references/       - Documentation intended to be loaded into context as needed
-    └── assets/           - Files used in output (templates, icons, fonts, etc.)
+├── SKILL.md           # Main instructions (required)
+├── template.md        # Template for Claude to fill in (optional)
+├── examples/
+│   └── sample.md      # Example output showing expected format (optional)
+├── reference.md       # Detailed reference docs (optional)
+└── scripts/
+    └── helper.py       # Utility script - executed, not loaded (optional)
 ```
+
+**Official structure from** https://code.claude.com/docs/en/skills
 
 #### SKILL.md (required)
 
@@ -93,14 +93,23 @@ Documentation and reference material intended to be loaded as needed into contex
 - **Best practice**: If files are large (>10k words), include grep search patterns in SKILL.md
 - **Avoid duplication**: Information should live in either SKILL.md or references files, not both. Prefer references files for detailed information unless it's truly core to the skill—this keeps SKILL.md lean while making information discoverable without hogging the context window. Keep only essential procedural instructions and workflow guidance in SKILL.md; move detailed reference material, schemas, and examples to references files.
 
-##### Assets (`assets/`)
+##### Examples (`examples/`)
 
-Files not intended to be loaded into context, but rather used within the output Claude produces.
+Example outputs showing expected formats or patterns.
 
-- **When to include**: When the skill needs files that will be used in the final output
-- **Examples**: `assets/logo.png` for brand assets, `assets/slides.pptx` for PowerPoint templates, `assets/frontend-template/` for HTML/React boilerplate, `assets/font.ttf` for typography
-- **Use cases**: Templates, images, icons, boilerplate code, fonts, sample documents that get copied or modified
-- **Benefits**: Separates output resources from documentation, enables Claude to use files without loading them into context
+- **When to include**: When demonstrating expected output formats or usage patterns
+- **Examples**: `examples/sample.md` for output format, `examples/basic-test.js` for test patterns
+- **Use cases**: Sample outputs, format templates, usage examples
+- **Benefits**: Shows Claude what expected output looks like without loading into context
+
+##### Template (`template.md`)
+
+Template file for Claude to fill in with generated content.
+
+- **When to include**: When the skill generates structured output following a specific format
+- **Examples**: Report templates, documentation templates, PR description templates
+- **Use cases**: Any structured document generation
+- **Benefits**: Provides consistent output structure
 
 #### What to Not Include in a Skill
 
@@ -344,7 +353,7 @@ python3 ~/.claude/skills/skill-creator/scripts/render_mermaid.py \
 Skill creation involves these steps:
 
 1. Understand the skill with concrete examples
-2. Plan reusable skill contents (scripts, references, assets)
+2. Plan reusable skill contents (scripts, references, examples, templates)
 3. Initialize the skill (run init_skill.py)
 4. Edit the skill (implement resources and write SKILL.md)
 5. Iterate based on real usage
@@ -373,7 +382,7 @@ Conclude this step when there is a clear sense of the functionality the skill sh
 To turn concrete examples into an effective skill, analyze each example by:
 
 1. Considering how to execute on the example from scratch
-2. Identifying what scripts, references, and assets would be helpful when executing these workflows repeatedly
+2. Identifying what scripts, references, examples, and templates would be helpful when executing these workflows repeatedly
 
 Example: When building a `pdf-editor` skill to handle queries like "Help me rotate this PDF," the analysis shows:
 
@@ -383,14 +392,71 @@ Example: When building a `pdf-editor` skill to handle queries like "Help me rota
 Example: When designing a `frontend-webapp-builder` skill for queries like "Build me a todo app" or "Build me a dashboard to track my steps," the analysis shows:
 
 1. Writing a frontend webapp requires the same boilerplate HTML/React each time
-2. An `assets/hello-world/` template containing the boilerplate HTML/React project files would be helpful to store in the skill
+2. A `template.html` file or `examples/` directory with boilerplate code would be helpful
 
 Example: When building a `big-query` skill to handle queries like "How many users have logged in today?" the analysis shows:
 
 1. Querying BigQuery requires re-discovering the table schemas and relationships each time
 2. A `references/schema.md` file documenting the table schemas would be helpful to store in the skill
 
-To establish the skill's contents, analyze each concrete example to create a list of the reusable resources to include: scripts, references, and assets.
+To establish the skill's contents, analyze each concrete example to create a list of the reusable resources to include: scripts, references, examples, and templates.
+
+### Step 2.5: Configure Frontmatter (CRITICAL)
+
+> **⚠️ MANDATORY CHECKPOINT**
+> Before running `init_skill.py`, you MUST determine the frontmatter configuration.
+>
+> **DO NOT skip this step!** Improper frontmatter configuration can lead to:
+> - Skill not triggering when expected
+> - Skill triggering too frequently
+> - Wrong execution context (inline vs subagent)
+> - Insufficient tool permissions
+
+**Frontmatter Decision Flow:**
+
+```mermaid
+graph TB
+    classDef default fill:#e3f2fd,stroke:#1565c0,stroke-width:2px;
+    classDef decision fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+    classDef critical fill:#ffebee,stroke:#c62828,stroke-width:3px;
+
+    A["开始 Frontmatter 配置"]:::default --> B["谁可以调用 Skill?"]:::decision
+    B -->|仅用户| C["disable-model-invocation: true"]:::critical
+    B -->|仅 Claude| D["user-invocable: false"]:::critical
+    B -->|都可以| E["保持默认"]:::default
+    C --> F["需要限制工具?"]:::decision
+    D --> F
+    E --> F
+    F -->|是| G["配置 allowed-tools"]:::critical
+    F -->|否| H["需要指定模型?"]:::decision
+    G --> H
+    H -->|是| I["配置 model"]:::critical
+    H -->|否| J["需要子 Agent?"]:::decision
+    I --> J
+    J -->|是| K["context: fork + agent"]:::critical
+    J -->|否| L["完成配置"]:::default
+```
+
+**Decision Questions:**
+
+| Question | Options | Frontmatter Field | Value |
+|----------|---------|-------------------|-------|
+| 谁可以调用? | 仅用户 / 仅 Claude / 都可以 | `disable-model-invocation` / `user-invocable` | 见下表 |
+| 需要限制工具? | 是 / 否 | `allowed-tools` | `["Bash", "Read"]` 等 |
+| 需要指定模型? | 是 / 否 | `model` | `sonnet` / `opus` / `haiku` |
+| 需要子 Agent? | 是 / 否 | `context` + `agent` | `fork` + `Explore` 等 |
+
+**调用模式配置表:**
+
+| 模式 | 配置 | 用户调用 | Claude 自动调用 |
+|------|------|----------|-----------------|
+| 默认模式 | (无配置) | ✓ | ✓ |
+| 用户独占 | `disable-model-invocation: true` | ✓ | ✗ |
+| Claude 独占 | `user-invocable: false` | ✗ | ✓ |
+
+**Read the complete guide**: See [references/frontmatter.md](references/frontmatter.md) for all available fields, detailed explanations, and examples.
+
+> **IMPORTANT**: After determining the required frontmatter fields, document them in the Mermaid proposal diagram shown to the user for confirmation.
 
 ### Step 3: Initializing the Skill
 
@@ -418,14 +484,14 @@ The script:
 
 - Creates the skill directory at the specified path
 - Generates a SKILL.md template with proper frontmatter and TODO placeholders
-- Creates example resource directories: `scripts/`, `references/`, and `assets/`
+- Creates example resource directories: `scripts/` and `examples/`
 - Adds example files in each directory that can be customized or deleted
 
 After initialization, customize or remove the generated SKILL.md and example files as needed.
 
 ### Step 4: Edit the Skill
 
-When editing the (newly-generated or existing) skill, remember that the skill is being created for another instance of Claude to use. Include information that would be beneficial and non-obvious to Claude. Consider what procedural knowledge, domain-specific details, or reusable assets would help another Claude instance execute these tasks more effectively.
+When editing the (newly-generated or existing) skill, remember that the skill is being created for another instance of Claude to use. Include information that would be beneficial and non-obvious to Claude. Consider what procedural knowledge, domain-specific details, or reusable resources would help another Claude instance execute these tasks more effectively.
 
 #### Learn Proven Design Patterns
 
@@ -438,11 +504,11 @@ These files contain established best practices for effective skill design.
 
 #### Start with Reusable Skill Contents
 
-To begin implementation, start with the reusable resources identified above: `scripts/`, `references/`, and `assets/` files. Note that this step may require user input. For example, when implementing a `brand-guidelines` skill, the user may need to provide brand assets or templates to store in `assets/`, or documentation to store in `references/`.
+To begin implementation, start with the reusable resources identified above: `scripts/`, `references/`, `examples/`, and `template.md` files. Note that this step may require user input. For example, when implementing a `brand-guidelines` skill, the user may need to provide brand resources or templates.
 
 Added scripts must be tested by actually running them to ensure there are no bugs and that the output matches what is expected. If there are many similar scripts, only a representative sample needs to be tested to ensure confidence that they all work while balancing time to completion.
 
-Any example files and directories not needed for the skill should be deleted. The initialization script creates example files in `scripts/`, `references/`, and `assets/` to demonstrate structure, but most skills won't need all of them.
+Any example files and directories not needed for the skill should be deleted. The initialization script creates example files in `scripts/` and `examples/` to demonstrate structure, but most skills won't need all of them.
 
 #### Update SKILL.md
 

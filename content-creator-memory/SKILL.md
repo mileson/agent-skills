@@ -110,9 +110,14 @@ allowed-tools: ["Shell"]
 ```
 content-creator-memory/
 ├── memories/              # 原始内容
-│   ├── contents/          # 自有内容（按年份组织）
-│   │   └── wechat/
-│   │       └── 2025/
+│   ├── contents/          # 自有内容（按平台组织）
+│   │   ├── wechat/        # 微信公众号文章
+│   │   │   ├── 2025/
+│   │   │   └── 2026/
+│   │   ├── jike/          # 即刻动态
+│   │   │   ├── posts/     # 拆分后的独立动态（1025条）
+│   │   │   └── archive/   # 原始大文件归档
+│   │   └── xhs/           # 小红书内容（待添加）
 │   └── examples/          # 标杆案例（按作者分类）
 │       └── wechat/
 │           ├── 数字生命卡兹克/
@@ -125,11 +130,16 @@ content-creator-memory/
 │   ├── reference_examples.json
 │   ├── search_index.json
 │   └── metadata.json
+├── references/            # 文档资源
+│   ├── indexing_spec.md   # 索引规范
+│   ├── api_usage.md       # API 使用手册
+│   └── jike-import-guide.md  # 即刻动态导入指南
 └── scripts/               # 管理工具（Agent 自动发现）
     ├── search_content.py
     ├── search_reference.py
     ├── rebuild_index.py
-    └── add_content.py
+    ├── add_content.py
+    └── split_jike_posts.py  # 即刻动态拆分工具
 ```
 
 ---
@@ -176,16 +186,22 @@ content-creator 在以下阶段会使用本 skill：
 
 ## 性能指标
 
-- **搜索响应**: 1-3ms（预加载索引）
-- **索引大小**: ~222KB（104 篇内容）
-- **内存占用**: ~2MB（索引加载后）
-- **支持内容量**: 1000+ 篇（无性能下降）
+- **搜索响应**: 15-40ms（预加载索引）
+- **索引大小**: ~1.8MB（1059 篇内容）
+- **内存占用**: ~5MB（索引加载后）
+- **支持内容量**: 5000+ 篇（无性能下降）
 
 ---
 
 ## 当前状态
 
 查看 `data/metadata.json` 获取实时统计信息（内容数量、索引关键词、最后更新时间等）
+
+**最新更新** (2026-02-05):
+- ✅ 新增 1025 条即刻动态 (2024-11-08 ~ 2026-01-26)
+- 📊 自有内容: 1059 篇 (34 篇微信 + 1025 条即刻)
+- 🔑 关键词: 4955 个
+- 📖 详见 [即刻动态导入指南](./references/jike-import-guide.md)
 
 ---
 

@@ -252,51 +252,77 @@ def rebuild_index(contents_dir: str, examples_dir: str, output_dir: str):
     else:
         print(f"⚠️  标杆案例目录不存在: {examples_path}")
     
-    # 3. 构建倒排索引
-    print("\n🔨 构建倒排索引...")
-    all_documents = own_works + reference_examples
-    inverted_index = build_inverted_index(all_documents)
-    print(f"✓ 倒排索引: {len(inverted_index)} 个关键词")
-    
-    # 4. 计算 TF-IDF
-    print("📊 计算 TF-IDF 分数...")
-    tfidf_scores = calculate_tfidf(inverted_index, all_documents)
-    print(f"✓ TF-IDF 计算完成: {len(tfidf_scores)} 个文档")
-    
-    # 5. 保存索引文件
-    print("\n💾 保存索引文件...")
+    # 3. 构建索引（分别为自有内容和标杆案例生成独立索引）
+    print("\n🔨 构建索引...")
     output_path = Path(output_dir).expanduser()
     output_path.mkdir(parents=True, exist_ok=True)
     
-    # 保存自有内容索引
-    own_works_file = output_path / "own_works.json"
-    with open(own_works_file, 'w', encoding='utf-8') as f:
-        json.dump(own_works, f, ensure_ascii=False, indent=2)
-    print(f"✓ 自有内容索引: {own_works_file}")
+    # 3a. 自有内容索引（按平台分离）
+    if own_works:
+        # 按平台分组
+        platform_groups = defaultdict(list)
+        for work in own_works:
+            # 从文件路径推断平台（如 contents/wechat/... -> wechat）
+            fp = work.get('file_path', '')
+            platform = 'unknown'
+            if '/wechat/' in fp:
+                platform = 'wechat'
+            elif '/jike/' in fp:
+                platform = 'jike'
+            elif '/xhs/' in fp:
+                platform = 'xhs'
+            work['platform'] = platform
+            platform_groups[platform].append(work)
+        
+        for platform, works in platform_groups.items():
+            # 保存自有内容
+            own_works_file = output_path / f"own_works_{platform}.json"
+            with open(own_works_file, 'w', encoding='utf-8') as f:
+                json.dump(works, f, ensure_ascii=False, indent=2)
+            print(f"✓ 自有内容索引 ({platform}): {own_works_file} ({len(works)} 篇)")
+            
+            # 构建并保存该平台的搜索索引
+            inv_idx = build_inverted_index(works)
+            tfidf = calculate_tfidf(inv_idx, works)
+            search_idx = {"inverted_index": inv_idx, "tfidf_scores": tfidf}
+            search_index_file = output_path / f"search_index_{platform}.json"
+            with open(search_index_file, 'w', encoding='utf-8') as f:
+                json.dump(search_idx, f, ensure_ascii=False, indent=2)
+            print(f"✓ 搜索索引 ({platform}): {search_index_file} ({len(inv_idx)} 关键词)")
     
-    # 保存标杆案例索引
+    # 3b. 标杆案例索引（独立生成 search_index_reference.json）
     reference_file = output_path / "reference_examples.json"
     with open(reference_file, 'w', encoding='utf-8') as f:
         json.dump(reference_examples, f, ensure_ascii=False, indent=2)
-    print(f"✓ 标杆案例索引: {reference_file}")
+    print(f"✓ 标杆案例索引: {reference_file} ({len(reference_examples)} 篇)")
     
-    # 保存搜索索引
-    search_index = {
-        "inverted_index": inverted_index,
-        "tfidf_scores": tfidf_scores
-    }
-    search_index_file = output_path / "search_index.json"
-    with open(search_index_file, 'w', encoding='utf-8') as f:
-        json.dump(search_index, f, ensure_ascii=False, indent=2)
-    print(f"✓ 搜索索引: {search_index_file}")
+    if reference_examples:
+        ref_inv_idx = build_inverted_index(reference_examples)
+        ref_tfidf = calculate_tfidf(ref_inv_idx, reference_examples)
+        ref_search_index = {"inverted_index": ref_inv_idx, "tfidf_scores": ref_tfidf}
+        ref_search_index_file = output_path / "search_index_reference.json"
+        with open(ref_search_index_file, 'w', encoding='utf-8') as f:
+            json.dump(ref_search_index, f, ensure_ascii=False, indent=2)
+        print(f"✓ 标杆案例搜索索引: {ref_search_index_file} ({len(ref_inv_idx)} 关键词)")
     
-    # 保存元数据
+    # 4. 统计所有关键词总数
+    all_documents = own_works + reference_examples
+    all_inverted_index = build_inverted_index(all_documents)
+    
+    # 5. 保存元数据
+    print("\n💾 保存元数据...")
+    platform_stats = {}
+    if own_works:
+        for platform, works in platform_groups.items():
+            platform_stats[platform] = len(works)
+    
     metadata = {
-        "version": "1.0",
+        "version": "2.0",
         "created_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "total_own_works": len(own_works),
+        "own_works_by_platform": platform_stats,
         "total_reference_examples": len(reference_examples),
-        "total_keywords": len(inverted_index)
+        "total_keywords": len(all_inverted_index)
     }
     metadata_file = output_path / "metadata.json"
     with open(metadata_file, 'w', encoding='utf-8') as f:

@@ -17,7 +17,35 @@ from pathlib import Path
 
 SKILL_TEMPLATE = """---
 name: {skill_name}
-description: [TODO: Complete and informative explanation of what the skill does and when to use it. Include WHEN to use this skill - specific scenarios, file types, or tasks that trigger it.]
+description: |
+  [TODO: Complete and informative explanation of what the skill does and when to use it.
+  Use third-person: "This skill should be used when Claude needs to..."
+  Include specific triggers: file types, tasks, or scenarios that trigger it.
+  Example: "Comprehensive PDF processing. Use this skill when Claude needs to
+  work with .pdf files for: extracting text, merging documents, filling forms."]
+
+# === 调用控制配置 (根据需要选择) ===
+# 决策流程: https://code.claude.com/docs/en/skills#control-who-invokes-a-skill
+#
+# disable-model-invocation: true    # 取消注释以仅允许用户调用 (如 /commit, /deploy)
+# user-invocable: false             # 取消注释以仅允许 Claude 自动调用 (如背景知识)
+#
+# 调用模式对比:
+# | 模式         | 配置                          | 用户调用 | Claude 自动调用 |
+# |--------------|-------------------------------|----------|-----------------|
+# | 默认模式     | (无配置)                      | ✓        | ✓               |
+# | 用户独占     | disable-model-invocation: true| ✓        | ✗               |
+# | Claude 独占  | user-invocable: false         | ✗        | ✓               |
+
+# === 其他可选配置 ===
+# 详细配置说明: https://code.claude.com/docs/en/skills#frontmatter-reference
+# 或查看: ~/.claude/skills/skill-creator/references/frontmatter.md
+#
+# argument-hint: "[arg1] [arg2]"     # 参数提示 (如: "[issue-number]")
+# allowed-tools: ["Bash", "Read"]    # 允许的工具 (无需用户许可)
+# model: "sonnet"                     # 指定模型 (sonnet/opus/haiku)
+# context: fork                       # 在子 Agent 中运行
+# agent: "Explore"                    # 配合 context: fork 使用
 ---
 
 # {skill_title}
@@ -87,19 +115,31 @@ Documentation and reference material intended to be loaded into context to infor
 
 **Appropriate for:** In-depth documentation, API references, database schemas, comprehensive guides, or any detailed information that Claude should reference while working.
 
-### assets/
-Files not intended to be loaded into context, but rather used within the output Claude produces.
+### examples/
+Example outputs showing expected formats or patterns.
 
 **Examples from other skills:**
-- Brand styling: PowerPoint template files (.pptx), logo files
-- Frontend builder: HTML/React boilerplate project directories
-- Typography: Font files (.ttf, .woff2)
+- Code skills: Sample outputs showing expected format
+- Report skills: Example report templates
+- Test skills: Sample test patterns
 
-**Appropriate for:** Templates, boilerplate code, document templates, images, icons, fonts, or any files meant to be copied or used in the final output.
+**Appropriate for:** Sample outputs, format templates, usage examples.
+
+### template.md
+Template file for Claude to fill in with generated content.
+
+**Examples from other skills:**
+- Report generation: Structured report template
+- Documentation: API documentation template
+- PR descriptions: Pull request template
+
+**Appropriate for:** Any structured document generation.
 
 ---
 
-**Any unneeded directories can be deleted.** Not every skill requires all three types of resources.
+**Official structure from** https://code.claude.com/docs/en/skills
+
+**Any unneeded directories can be deleted.** Not every skill requires all resource types.
 """
 
 EXAMPLE_SCRIPT = '''#!/usr/bin/env python3
@@ -159,30 +199,47 @@ Reference docs are ideal for:
 - Best practices
 """
 
-EXAMPLE_ASSET = """# Example Asset File
+EXAMPLE_TEMPLATE = """# Template for {skill_title}
 
-This placeholder represents where asset files would be stored.
-Replace with actual asset files (templates, images, fonts, etc.) or delete if not needed.
+This is a placeholder template file for Claude to fill in.
+Replace with actual template content or delete if not needed.
 
-Asset files are NOT intended to be loaded into context, but rather used within
-the output Claude produces.
+Template files define the structure for generated output.
+Claude will fill in the placeholders with actual content.
 
-Example asset files from other skills:
-- Brand guidelines: logo.png, slides_template.pptx
-- Frontend builder: hello-world/ directory with HTML/React boilerplate
-- Typography: custom-font.ttf, font-family.woff2
-- Data: sample_data.csv, test_dataset.json
+## Example Template Structure
 
-## Common Asset Types
+# [Title]
 
-- Templates: .pptx, .docx, boilerplate directories
-- Images: .png, .jpg, .svg, .gif
-- Fonts: .ttf, .otf, .woff, .woff2
-- Boilerplate code: Project directories, starter files
-- Icons: .ico, .svg
-- Data files: .csv, .json, .xml, .yaml
+## Overview
+[Brief description of the content]
 
-Note: This is a text placeholder. Actual assets can be any file type.
+## Details
+[Main content goes here]
+
+## Notes
+[Any additional notes or considerations]
+"""
+
+EXAMPLE_EXAMPLE = """# Example Output for {skill_title}
+
+This is a placeholder example file showing expected output format.
+Replace with actual example content or delete if not needed.
+
+Example files demonstrate the expected format or pattern
+that Claude should follow when generating output.
+
+## When Example Files Are Useful
+
+Example files are ideal for:
+- Showing expected output format
+- Demonstrating code patterns
+- Illustrating document structure
+- Providing reference implementations
+
+## Example Content
+
+[Your example content would go here]
 """
 
 
@@ -250,12 +307,17 @@ def init_skill(skill_name, path):
         example_reference.write_text(EXAMPLE_REFERENCE.format(skill_title=skill_title))
         print("✅ Created references/api_reference.md")
 
-        # Create assets/ directory with example asset placeholder
-        assets_dir = skill_dir / 'assets'
-        assets_dir.mkdir(exist_ok=True)
-        example_asset = assets_dir / 'example_asset.txt'
-        example_asset.write_text(EXAMPLE_ASSET)
-        print("✅ Created assets/example_asset.txt")
+        # Create examples/ directory with example file
+        examples_dir = skill_dir / 'examples'
+        examples_dir.mkdir(exist_ok=True)
+        example_file = examples_dir / 'sample.md'
+        example_file.write_text(EXAMPLE_EXAMPLE.format(skill_title=skill_title))
+        print("✅ Created examples/sample.md")
+
+        # Create template.md file
+        template_file = skill_dir / 'template.md'
+        template_file.write_text(EXAMPLE_TEMPLATE.format(skill_title=skill_title))
+        print("✅ Created template.md")
     except Exception as e:
         print(f"❌ Error creating resource directories: {e}")
         return None
@@ -264,7 +326,7 @@ def init_skill(skill_name, path):
     print(f"\n✅ Skill '{skill_name}' initialized successfully at {skill_dir}")
     print("\nNext steps:")
     print("1. Edit SKILL.md to complete the TODO items and update the description")
-    print("2. Customize or delete the example files in scripts/, references/, and assets/")
+    print("2. Customize or delete the example files in scripts/, references/, examples/, and template.md")
     print("3. Run the validator when ready to check the skill structure")
 
     return skill_dir

@@ -81,18 +81,16 @@ SKILL.md (500 行以内)
 
 ```
 skill-name/
-├── SKILL.md                 # 必需，主说明文件
-├── .DS_Store               # macOS 隐藏文件（忽略）
-├── scripts/                 # 可选，可执行代码
-│   └── *.py, *.sh, etc.
-├── references/              # 可选，参考文档
-│   ├── *.md
-│   └── subfolders/
-├── assets/                  # 可选，输出资源
-│   └── images, outputs, etc.
-└── tests/                   # 可选，测试文件
-    └── *.py, *.ts, etc.
+├── SKILL.md           # 必需，主说明文件
+├── template.md        # 可选，Claude 填写的模板
+├── examples/
+│   └── sample.md      # 可选，示例输出文件
+├── reference.md       # 可选，详细参考文档
+└── scripts/
+    └── helper.py      # 可选，工具脚本（执行，不加载）
 ```
+
+**官方标准结构来源**: https://code.claude.com/docs/en/skills
 
 ### Scripts (scripts/)
 
@@ -105,7 +103,7 @@ skill-name/
 
 **示例**: `render_mermaid.py`、`validate.py`
 
-### References (references/)
+### References (reference.md 或 references/)
 
 参考文档，按需加载到上下文中。
 
@@ -116,13 +114,27 @@ skill-name/
 
 **示例**: `frontmatter.md`、`workflows.md`
 
-### Assets (assets/)
+### Examples (examples/)
 
-用于输出的资源文件，不加载到上下文。
+示例文件，展示预期的输出格式或使用模式。
 
 **特点**:
-- 静态资源（图片、缓存等）
-- 不参与对话上下文
+- 按需加载到上下文
+- 展示预期的输出格式
+- 便于 Claude 学习模式
+
+**示例**: `examples/sample.md`、`examples/basic-test.js`
+
+### Template (template.md)
+
+模板文件，供 Claude 填写生成内容。
+
+**特点**:
+- 定义输出结构
+- Claude 按模板填充内容
+- 适合报告生成等场景
+
+**示例**: 报告模板、文档模板、PR 描述模板
 
 ---
 

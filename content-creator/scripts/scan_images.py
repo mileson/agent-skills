@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 图片扫描工具
-扫描工作区 Medias/images/ 目录下的所有图片文件
+扫描工作区 Materials/Medias/images/ 目录下的所有图片文件
 输出 markdown-to-wechat 兼容的格式
 """
 
@@ -28,7 +28,7 @@ def scan_images(workspace_path: str = None) -> Dict:
         workspace_path = os.getcwd()
     
     workspace_path = Path(workspace_path)
-    images_dir = workspace_path / "Medias" / "images"
+    images_dir = workspace_path / "Materials" / "Medias" / "images"
     
     result = {
         "workspace": str(workspace_path),
@@ -42,13 +42,16 @@ def scan_images(workspace_path: str = None) -> Dict:
         result["error"] = f"图片目录不存在: {images_dir}"
         return result
     
-    # 扫描所有图片文件
+    # 递归扫描所有图片文件（包括子目录）
     image_files = []
-    for file_path in sorted(images_dir.iterdir()):
+    for file_path in sorted(images_dir.rglob('*')):  # 使用 rglob 递归扫描
         if file_path.is_file() and file_path.suffix.lower() in IMAGE_EXTENSIONS:
             # 提取文件名中的语义信息
             filename = file_path.name
             name_without_ext = file_path.stem
+            
+            # 计算相对于 images/ 的路径
+            relative_path = file_path.relative_to(images_dir)
             
             # 尝试提取序号（如 01-preview.png -> 序号: 01）
             sequence = None
@@ -65,12 +68,17 @@ def scan_images(workspace_path: str = None) -> Dict:
                     keyword = parts[1] if len(parts) > 1 else name_without_ext
             
             # 构造 markdown-to-wechat 兼容的路径格式
-            markdown_path = f"Medias/images/{filename}"
+            # 使用相对路径，保留子目录结构
+            markdown_path = f"Medias/images/{relative_path.as_posix()}"
+            
+            # 提取子目录信息（如果在子目录中）
+            subdirectory = str(relative_path.parent) if relative_path.parent != Path('.') else None
             
             image_info = {
                 "filename": filename,
                 "path": str(file_path),
                 "markdown_path": markdown_path,
+                "subdirectory": subdirectory,  # 新增：子目录信息
                 "sequence": sequence,
                 "keyword": keyword,
                 "size": file_path.stat().st_size,
@@ -102,7 +110,8 @@ def format_markdown_list(images: List[Dict]) -> str:
     for i, img in enumerate(images, 1):
         sequence_info = f" (序号: {img['sequence']})" if img['sequence'] is not None else ""
         keyword_info = f" [关键词: {img['keyword']}]" if img['keyword'] else ""
-        lines.append(f"{i}. `{img['markdown_path']}`{sequence_info}{keyword_info}")
+        subdir_info = f" [目录: {img['subdirectory']}]" if img.get('subdirectory') else ""
+        lines.append(f"{i}. `{img['markdown_path']}`{sequence_info}{keyword_info}{subdir_info}")
     
     return "\n".join(lines)
 
@@ -133,14 +142,52 @@ def main():
         elif result['total_images'] > 0:
             print("### 图片清单\n")
             print(format_markdown_list(result['images']))
-            print("\n### Markdown 引用格式\n")
-            print("```markdown")
+            
+            # 按子目录分组显示
+            subdirs = {}
             for img in result['images']:
+                subdir = img.get('subdirectory') or '根目录'
+                if subdir not in subdirs:
+                    subdirs[subdir] = []
+                subdirs[subdir].append(img)
+            
+            print("\n### 按目录分组\n")
+            for subdir, imgs in sorted(subdirs.items()):
+                print(f"**{subdir}** ({len(imgs)} 张)")
+                for img in imgs:
+                    print(f"  - {img['filename']}")
+                print()
+            
+            print("### Markdown 引用格式\n")
+            print("#### 在 draft.md 中使用（阶段4）：\n")
+            print("```markdown")
+            # 只显示前2个示例
+            for i, img in enumerate(result['images'][:2]):
                 print(f"![图片描述]({img['markdown_path']})")
                 print()
                 print("*▲ 图注说明*")
                 print()
+            if len(result['images']) > 2:
+                print("... (共 {} 张图片，格式相同)".format(len(result['images'])))
             print("```")
+            
+            print("\n#### 在 article.md 中使用（阶段6，自动转换）：\n")
+            print("```markdown")
+            # 只显示前2个示例
+            for i, img in enumerate(result['images'][:2]):
+                # 去掉 Medias/ 前缀，只保留 images/xxx
+                platform_path = img['markdown_path'].replace('Medias/', '')
+                print(f"![图片描述]({platform_path})")
+                print()
+                print("*▲ 图注说明*")
+                print()
+            if len(result['images']) > 2:
+                print("... (共 {} 张图片，格式相同)".format(len(result['images'])))
+            print("```")
+            
+            print("\n**⭐ 路径转换规则**：")
+            print("- 阶段4（draft.md）：使用 `Medias/images/xxx.png`")
+            print("- 阶段6（article.md）：Agent 自动转换为 `images/xxx.png`")
         else:
             print("⚠️ 未找到任何图片文件")
     else:

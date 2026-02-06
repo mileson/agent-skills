@@ -40,9 +40,18 @@
 ├─ 不存在 → 提示："请创建Materials/文件夹并放入原始素材"
 └─ 存在 → 继续
 
-检查 Medias/ 是否存在
-├─ 不存在 → 记录：无媒体资源
-└─ 存在 → 扫描内容
+检查配图资源（⚠️ 必须使用 scan_images.py，禁止 Agent 自行判断）
+├─ 执行：python3 ~/.cursor/skills/content-creator/scripts/scan_images.py [工作区路径] markdown
+├─ 以脚本输出为唯一判断依据：
+│   ├─ 脚本报告"目录不存在"或"0张图片"
+│   │   → ⚠️ 主动询问用户："是否有配图需要添加？"
+│   │   ├─ 用户：有 → 提示放入 Materials/Medias/images/ 后回复"继续"
+│   │   │         → 用户确认后重新执行 scan_images.py
+│   │   └─ 用户：无 → 标记"本文确认无配图（用户已确认）"
+│   └─ 脚本报告有图片
+│       → 记录图片数量和清单，纳入元数据
+└─ ⚠️ 禁止规则：Agent 不得通过自行检查目录、Glob 搜索等方式
+   独立判断配图状态，必须以 scan_images.py 输出为准
 
 检查 Output/ 是否存在
 ├─ 不存在 → 创建完整目录结构
@@ -342,7 +351,7 @@ python3 ~/.cursor/skills/content-creator/scripts/scan_images.py [工作区路径
 ## 图片扫描结果
 
 - 工作区: `/Users/xxx/my-article`
-- 图片目录: `/Users/xxx/my-article/Medias/images`
+- 图片目录: `/Users/xxx/my-article/Materials/Medias/images`
 - 目录存在: ✅ 是
 - 图片总数: **5** 张
 
@@ -357,9 +366,7 @@ python3 ~/.cursor/skills/content-creator/scripts/scan_images.py [工作区路径
 ### Markdown 引用格式
 
 ```markdown
-![图片描述](Medias/images/01-preview.png)
-
-*▲ 图注说明*
+![图注说明，10-20字](Medias/images/01-preview.png)
 ```
 ```
 
@@ -400,7 +407,7 @@ for each 图片 in 图片清单:
 
 ```bash
 # 工具输出
-❌ 错误: 图片目录不存在: /path/to/Medias/images
+❌ 错误: 图片目录不存在: /path/to/Materials/Medias/images
 
 # Agent 应该：
 - 标记：本文无配图
@@ -439,17 +446,15 @@ for each 图片 in 图片清单:
   - 技巧素材辅助（钩子模式、开篇技巧）
   - 智能组合（自然流畅）
 - **图片嵌入规范指令**（⭐⭐⭐ 重要）：
-  - 必须使用步骤3.1扫描到的图片路径：`Medias/images/文件名.ext`
+  - 必须使用步骤3.1扫描到的图片路径：`Medias/images/文件名.png`（以实际扫描到的扩展名为准，如 .png/.jpeg/.jpg/.webp）
   - 图片必须嵌入到章节内容的合适位置（描述该内容的段落之后）
   - 禁止将图片集中放在文章最后作为"配图建议"
   - 标准格式：
     ```markdown
-    ![图片描述性说明](Medias/images/01-preview.png)
-    
-    *▲ 图注文字（10-20字）*
+    ![图注文字，10-20字](Medias/images/01-preview.png)
     ```
-  - 图片说明（alt文本）：描述图片内容，15-30字
-  - 图注文字：补充说明，10-20字
+  - alt 文本 = 图注说明：简洁描述图片内容，10-20字（markdown-to-wechat 会自动渲染为 figcaption）
+  - ⚠️ **禁止**在图片下方另起一行写 `*▲ ...*` 斜体图注（会与 figcaption 重复显示）
 
 ## 写作待办事项
 
@@ -566,9 +571,8 @@ for each 章节 in 写作待办事项:
 └─────────────────────────────────────┘
            ↓
 ┌─────────────────────────────────────┐
-│ 3. ⭐ 立即嵌入图片                  │
-│    ![主界面预览](Medias/images/01.png) │
-│    *▲ 简洁的主界面设计*            │
+│ 3. ⭐ 立即嵌入图片                        │
+│    ![简洁的主界面设计](Medias/images/01.png)     │
 └─────────────────────────────────────┘
            ↓
 ┌─────────────────────────────────────┐
@@ -585,10 +589,10 @@ for each 章节 in 写作待办事项:
 **标准 Markdown 格式**（必须遵守）：
 
 ```markdown
-![图片描述性说明](Medias/images/文件名.ext)
-
-*▲ 图注文字（10-20字）*
+![图注文字，10-20字](Medias/images/文件名.png)
 ```
+
+> ⚠️ 图注只写在 alt 文本中，**不要**另起 `*▲ ...*` 行（markdown-to-wechat 会自动将 alt 渲染为 figcaption，另写会重复）
 
 **完整章节示例**（正确做法）⭐：
 
@@ -597,17 +601,13 @@ for each 章节 in 写作待办事项:
 
 在开始使用这个工具之前，我想先带你看看它的界面。整个界面设计得非常简洁，左侧是功能菜单，右侧是主工作区。
 
-![工具主界面预览](Medias/images/01-preview.png)
-
-*▲ 简洁的主界面设计，一目了然*
+![简洁的主界面设计，一目了然](Medias/images/01-preview.png)
 
 看到了吗？这个设计的核心理念就是：让你专注于核心功能，不被复杂的选项干扰。
 
 接下来，我会教你如何配置工具栏。这个功能很实用，可以把常用的应用直接放到工具栏，一键启动。
 
-![工具栏配置界面](Medias/images/02-toolbar-config.png)
-
-*▲ 拖拽即可添加应用到工具栏*
+![拖拽即可添加应用到工具栏](Medias/images/02-toolbar-config.png)
 
 配置完成后，你的工作效率会提升不少...
 ```
@@ -656,15 +656,11 @@ for each 章节 in 写作待办事项:
 
 介绍界面的段落...
 
-![主界面预览](Medias/images/01-preview.png)  ← ✅ 紧跟描述段落
-
-*▲ 主界面设计*
+![主界面设计](Medias/images/01-preview.png)  ← ✅ 紧跟描述段落
 
 继续写配置的段落...
 
-![配置界面](Medias/images/02-config.png)  ← ✅ 紧跟配置说明
-
-*▲ 配置步骤*
+![配置步骤](Medias/images/02-config.png)  ← ✅ 紧跟配置说明
 
 继续后续内容...
 ```
@@ -675,8 +671,9 @@ for each 章节 in 写作待办事项:
 - [ ] 没有图片被遗漏？
 - [ ] 没有图片堆在章节最后或文章最后？
 - [ ] 每张图片都紧跟相关描述段落？
-- [ ] 图片路径格式正确（`Medias/images/xxx.ext`）？
-- [ ] 每张图片都有 alt 文本和图注？
+- [ ] 图片路径格式正确（`Medias/images/xxx.png`，以实际扫描到的扩展名为准）？
+- [ ] 每张图片都有 alt 文本（图注说明，10-20字）？
+- [ ] 没有另起 `*▲ ...*` 斜体行（避免与 figcaption 重复）？
 
 ### 步骤4.2：全局质量检查
 
@@ -694,9 +691,51 @@ for each 章节 in 写作待办事项:
 - 增加口语化表达
 - 不要破折号、冒号、双引号
 - 不要过度分行，采用自然段
+- 避免「不是...而是...」「与其说...不如说...」等对立转折句式，这是典型的 AI 写作痕迹，改用更自然的口语化转折（如"换句话说""其实"）
+
+### 步骤4.4：移除元数据信息（⭐ 新增）
+
+**⚠️ 强制规则**：文章中禁止出现以下内容：
+
+❌ **禁止在文章头部出现**：
+```markdown
+# ❌ 错误示例（禁止）
+作者：超级峰 | AI 独立开发者
+发布时间：2026-02-05
+分类：技术教程
+---
+```
+
+❌ **禁止在文章结尾出现**：
+```markdown
+# ❌ 错误示例（禁止）
+---
+## 关于本文
+
+- 总字数：约 4800 字
+- 预计阅读时间：12 分钟
+- 生成时间：2026-02-05
+- 版本：微信公众号 v1.0
+- 基于：content-creator skill + Anthropic Skill 系统
+- 图片数量：11 张
+- 原创度：100%
+- 推荐阅读时间：工作日早 8:00-9:00
+- 适合人群：AI 从业者、独立开发者...
+- 转载说明：欢迎转载，请注明出处
+```
+
+**原因**：
+- 这些是给创作者看的技术元数据
+- 不应该暴露给最终读者
+- 会破坏阅读体验和文章专业性
+
+✅ **正确做法**：
+- 文章直接从标题开始
+- 结尾自然收尾，无需元数据说明
+- 元数据信息记录在 `metadata.yaml` 中
 
 **输出**：
-- `Output/_drafts/04_draft.md`（通用初稿）
+- `Output/_drafts/04_draft.md`（通用初稿，干净无元数据）
 
 **无需用户确认**，直接进入阶段5
 
@@ -847,66 +886,133 @@ for each 章节 in 写作待办事项:
 对每个平台：
 
 ```
-- 读取平台规则中的图片尺寸要求
-- 检查文章中的图片路径格式（![说明](Medias/images/xxx.png)）
-- **关键步骤**：在生成平台版本前，保留原始 Medias/ 路径
-  （为后续 markdown-to-wechat 的图床上传做准备）
-- 将 Medias/images/ 的图片复制到 Output/[platform]/images/
-- 在平台版本的 article.md 中，更新图片引用为：
-  - 小红书：./images/xxx.png（本地相对路径）
-  - 微信公众号：保持 Medias/images/xxx.png（待图床上传）⭐
-  - 其他平台：根据平台规则调整
+执行步骤：
+1. 读取平台规则中的图片尺寸要求
+2. 检查 draft 中的图片路径格式（![说明](Medias/images/xxx.png)）
+3. 复制图片文件：
+   从：Materials/Medias/images/xxx.png
+   到：Output/[platform]/images/xxx.png
+4. ⭐ 更新平台版本 article.md 中的图片引用为相对路径：
+   将：Medias/images/xxx.png
+   替换为：images/xxx.png（相对路径，去掉 Medias/ 前缀）
 ```
 
-**⚠️ 图片路径兼容性说明**（关键）：
+**⚠️ 关键原则**：
 
-markdown-to-wechat skill 支持以下图片路径格式：
+```
+阶段4（draft.md）：
+  引用格式：Medias/images/01.png
+  图片位置：Materials/Medias/images/01.png
+  
+阶段6（article.md）：
+  引用格式：images/01.png ⭐ 相对路径
+  图片位置：Output/{platform}/images/01.png
+```
+
+**⚠️ 图片路径转换规则**（关键）：
+
+阶段6将图片路径从 draft 格式转换为平台相对路径：
 
 ```markdown
-# ✅ 支持的格式（按优先级）
-![说明](images/01.png)                    # 相对路径（最常见）
-![说明](Output/wechat/images/01.png)      # 完整路径（微信平台）
-![说明](Output/xhs/images/01.png)         # 完整路径（小红书平台）
-![说明](Medias/images/01.png)             # 旧版格式（兼容）⭐ 推荐
+# draft.md 中（阶段4输出）
+![说明](Medias/images/01.png)
 
-# ❌ 不支持的格式
-![说明](./images/01.png)                  # ./ 开头不支持
-![说明](/absolute/path/01.png)            # 绝对路径不支持
+# ↓ 转换为 ↓
+
+# article.md 中（阶段6输出）
+![说明](images/01.png)  ⭐ 使用相对路径
 ```
 
-**平台特定处理策略**：
+**转换逻辑**：
 
-| 平台 | 路径格式 | 原因 | 后续处理 |
-|-----|---------|------|---------|
-| **微信公众号** | `Medias/images/xxx.png` ⭐ | 兼容 markdown-to-wechat | 自动上传到阿里云 OSS |
-| **小红书** | `./images/xxx.png` | 本地相对路径 | 复制到 Output/xhs/images/ |
-| **知乎** | `./images/xxx.png` | 本地相对路径 | 复制到 Output/zhihu/images/ |
-| **其他平台** | 根据平台规则 | - | - |
+```
+for each 图片引用 in draft.md:
+  原路径：Medias/images/subfolder/01.png
+  ↓
+  1. 复制文件：
+     从：Materials/Medias/images/subfolder/01.png
+     到：Output/{platform}/images/subfolder/01.png
+  
+  2. 更新引用：
+     将：Medias/images/subfolder/01.png
+     替换为：images/subfolder/01.png
+     （去掉 Medias/ 前缀，保留子目录结构）
+```
 
-**重要说明**：
-- 对于**微信公众号平台**，在 `Output/wechat/article.md` 中：
-  - ✅ **保持原始的 `Medias/images/` 路径**（不要替换为 CDN URL）
-  - ✅ 确保图片引用格式为：`![说明](Medias/images/xxx.png)`
-  - ✅ 这样在后续执行 `/markdown-to-wechat` 时，可以：
-    1. 检测到 `Medias/images/` 路径的图片
-    2. 自动调用 `markdown-image-uploader` skill
-    3. 上传图片到阿里云 OSS
-    4. 替换为 CDN URL
-    5. 再生成最终 HTML
+**平台统一处理策略**：
 
-**markdown-to-wechat 工作流**：
+| 平台 | 路径格式 | 图片位置 | markdown-to-wechat 支持 |
+|-----|---------|---------|----------------------|
+| **所有平台** | `images/xxx.png` ⭐ | `Output/{platform}/images/` | ✅ 支持 |
+
+**markdown-to-wechat 工作流**（简化）：
 
 ```bash
 # 用户在 content-creator 完成后，执行转换
 @markdown-to-wechat Output/wechat/article.md
 
 # markdown-to-wechat 自动执行：
-# 1. 检测图片路径格式（Medias/images/）
-# 2. 调用 markdown-image-uploader 上传到阿里云 OSS
-# 3. 替换为 CDN URL：https://cdn.example.com/...
-# 4. 转换为微信公众号 HTML 格式
-# 5. 输出：Output/wechat/article.html（可直接复制到微信后台）
+# 1. 检测图片路径格式（images/xxx.png）
+# 2. 找到本地图片文件（Output/wechat/images/xxx.png）
+# 3. 上传到阿里云 OSS
+# 4. 替换为 CDN URL：https://cdn.example.com/...
+# 5. 转换为微信公众号 HTML 格式
+# 6. 输出：Output/wechat/article.html
 ```
+
+**优势**：
+- ✅ 每个平台目录自包含（article.md + images/）
+- ✅ 路径相对化，便于移动和分发
+- ✅ 符合 markdown-to-wechat 的相对路径优先原则
+
+---
+
+### ⚠️ 重要：图片路径策略说明
+
+**问题场景**：
+用户可能使用不同的图片处理工具，导致路径需求不同。
+
+**两种工作流对比**：
+
+#### 工作流A：markdown-to-wechat 一键处理（推荐）⭐
+
+```bash
+# 1. content-creator 生成平台版本（路径：images/xxx.png）
+# 2. 图片已复制到 Output/wechat/images/
+# 3. 直接调用 markdown-to-wechat
+@markdown-to-wechat Output/wechat/article.md
+
+# markdown-to-wechat 自动：
+# - 从 Output/wechat/images/ 读取图片
+# - 上传到阿里云 OSS
+# - 替换为 CDN URL
+# - 转换为 HTML
+```
+
+**路径格式**：`images/xxx.png`（相对于 `Output/wechat/`）
+
+#### 工作流B：markdown-image-uploader + markdown-to-wechat
+
+```bash
+# 1. content-creator 生成平台版本（路径：Materials/Medias/images/xxx.png）⭐
+# 2. 从工作区根目录运行图片上传工具
+cd "[工作区根目录]"
+markdown-image-uploader Output/wechat/article.md -o Output/wechat/article_with_cdn.md
+
+# 3. 再用 markdown-to-wechat 转换 HTML（此时图片已是 CDN URL）
+@markdown-to-wechat Output/wechat/article_with_cdn.md
+```
+
+**路径格式**：`Materials/Medias/images/xxx.png`（相对于工作区根目录）
+
+---
+
+**⭐ 默认策略**：使用工作流A（路径：`images/xxx.png`）
+
+**切换到工作流B**：
+如果用户明确表示要使用 `markdown-image-uploader` 或类似工具，则在步骤6.3的路径转换中保持 `Materials/Medias/images/` 路径，不进行转换。
+
+---
 
 ### 步骤6.4：平台内容生成
 
@@ -924,6 +1030,39 @@ markdown-to-wechat skill 支持以下图片路径格式：
 示例（微信公众号）：
 - 字数：2500字（完整版）
 - 语调：正式、可信、适量故事化
+```
+
+**⚠️ 强制规则**（必须遵守）：
+
+❌ **禁止在文章头部添加**：
+```markdown
+作者：XXX | 身份描述
+发布时间：YYYY-MM-DD
+分类：XXX
+标签：XXX
+---
+```
+
+❌ **禁止在文章结尾添加**：
+```markdown
+---
+## 关于本文
+- 总字数：约 4800 字
+- 预计阅读时间：12 分钟
+- 生成时间：2026-02-05
+- 版本：微信公众号 v1.0
+- 基于：content-creator skill + Anthropic Skill 系统
+- 图片数量：11 张
+- 原创度：100%
+- 推荐阅读时间：工作日早 8:00-9:00
+- 适合人群：AI 从业者、独立开发者...
+- 转载说明：欢迎转载，请注明出处
+```
+
+✅ **正确做法**：
+- 文章直接从标题开始，无作者署名
+- 结尾自然收尾（可以是行动号召、总结等）
+- 所有元数据记录在 `metadata.yaml` 中，不写入文章正文
 - 格式：段落3-5行、首段引痛点、结尾行动号召
 - 人性化：错别字≤3，保留专业术语
 ```
@@ -1084,12 +1223,20 @@ markdown-to-wechat skill 支持以下图片路径格式：
 ```
 跳过检查：
 - 在 compliance-report.json 标记 skipped: true
-- 在 metadata.json 标记 compliance_warning: true
-- 在 publish-checklist.md 添加警告提示
+- 在 metadata.yaml 标记 compliance_warning: true
 - 继续步骤6.6
 ```
 
 ### 步骤6.6：生成配套文件
+
+**⚠️ 根据平台类型，生成不同的配套文件**：
+
+| 平台 | article.md | metadata.yaml | compliance-report.json | images/ | 备注 |
+|-----|-----------|--------------|----------------------|---------|------|
+| **微信公众号** | ✅ | ✅ | ❌ | ✅ | 无需敏感词检查 |
+| **小红书** | ✅ | ✅ | ✅ | ✅ | 需要敏感词检查 |
+| **知乎** | ✅ | ✅ | ❌ | ✅ | 无需敏感词检查 |
+| **其他平台** | ✅ | ✅ | 根据需要 | ✅ | 按平台规则 |
 
 对每个平台生成：
 
@@ -1097,141 +1244,226 @@ markdown-to-wechat skill 支持以下图片路径格式：
 
 已在步骤6.4生成，可能在步骤6.5被修改
 
-#### 2. metadata.json（平台元数据）
+#### 2. metadata.yaml（平台元数据）
 
-```json
-{
-  "platform": {"id": "xhs", "display_name": "小红书"},
-  "article": {"title": "...", "word_count": 650},
-  "seo": {"keywords": [...], "hashtags": [...]},
-  "medias": {"cover": {...}, "inline_images": [...]},
-  "platform_specific": {...},
-  "generation": {...},
-  "quality_checks": {...},
-  "compliance": {
-    "checked": true,
-    "status": "通过",
-    "sensitive_words_count": 0,
-    "warning": false
-  },
-  "publish_status": {"ready_to_publish": true}
-}
+```yaml
+platform:
+  id: xhs
+  display_name: 小红书
+
+# ⭐ 作者信息（从 00_extracted_meta.yaml 的 brand_voice.name 获取）
+author:
+  name: "超级峰"                # 必填：发布时的署名
+
+article:
+  title: "..."
+  digest: "..."              # ⭐ 摘要（仅限有 digest_max_chars 配置的平台，如微信≤40字）
+  word_count: 650
+
+seo:
+  keywords:
+    - AI
+    - 编程
+  hashtags:
+    - "#AI编程"
+    - "#技术分享"
+
+# ⭐ 封面图规范
+# - 命名约定: cover.{ext}，ext 可以是 jpg/jpeg/png/gif/webp/bmp
+# - 路径: 相对于当前平台输出目录 Output/{platform}/
+# - 来源: content-creator 阶段6 从 Materials/Medias/images/ 中选取或用户提供
+# - content-publisher 会读取此路径进行上传，不会自动猜测文件名
+medias:
+  cover:
+    path: "./images/cover.jpg"   # 支持任意图片格式，无需限制为 .png
+    size: "1:1"
+  inline_images:
+    - path: "./images/01.png"
+      alt: "图片说明"
+
+platform_specific:
+  emoji_usage: moderate
+  content_style: conversational
+
+generation:
+  source_draft: "04_draft.md"
+  adapted_at: "2026-02-04 10:30:00"
+  version: "1.0"
+
+quality_checks:
+  word_count_match: true
+  format_compliance: true
+
+compliance:
+  checked: true
+  status: "通过"
+  sensitive_words_count: 0
+  warning: false
+
+publish_status:
+  ready_to_publish: true
+  notes: ""
 ```
 
-#### 3. publish-checklist.md（发布检查清单）
+**author（作者）字段规则** ⭐：
 
-```markdown
-# {平台}发布检查清单
+| 规则 | 说明 |
+|---|---|
+| 数据来源 | 从 `00_extracted_meta.yaml` 的 `brand_voice.name` 读取 |
+| 必填性 | 所有平台均必填 |
+| 用途 | content-publisher 发布时用作署名 |
 
-## 📋 内容检查
-- [ ] 标题吸引力强
-- [ ] 字数符合平台要求
-- [ ] 格式符合平台规范
-- [ ] 已完成敏感词检查
+**digest（摘要）生成规则** ⭐：
 
-## ⚠️ 合规性
-- [ ] 无政治敏感内容
-- [ ] 无极限用语
-- [ ] 无医疗用语
-- [ ] 无引流信息
+当平台配置了 `digest_max_chars` 时（如微信公众号 = 40），必须生成 `article.digest` 字段：
 
-## 📊 质量检查
-- [ ] 质量评分 >= 8.0
-- [ ] 已优化低分维度
-- [ ] 图片清晰无水印
+| 规则 | 说明 |
+|---|---|
+| 字数 | ≤ 平台 `digest_max_chars`（微信 ≤ 40 字） |
+| 内容 | 从正文提炼核心价值，回答「读者为什么要点开」 |
+| 语气 | 与文章整体 tone 一致 |
+| 禁止 | 不重复标题、不用「本文将…」等模板句式 |
+| 来源 | 优先从开篇 hook 或结论精华提炼 |
 
-## ✅ 最终确认
-- [ ] 已完成人工复查
-- [ ] 确认可以发布
+**cover（封面图）字段规则** ⭐：
+
+| 规则 | 说明 |
+|---|---|
+| 命名约定 | `cover.{ext}`，ext 支持 jpg/jpeg/png/gif/webp/bmp |
+| 路径格式 | 相对路径，相对于 `Output/{platform}/` 目录 |
+| 图片来源 | 从 `Materials/Medias/images/` 中选取合适图片复制为 cover |
+| 路径示例 | `./images/cover.jpg`、`./images/cover.png` |
+| 重要 | content-publisher 仅读取 `medias.cover.path`，不会自动搜索 |
+
+#### 3. 发布提示
+
+**所有平台**：
+- ✅ 直接调用对应的转换工具
+- ✅ 微信公众号：提示词 `@markdown-to-wechat Output/wechat/article.md`
+
+**小红书等需敏感词检查的平台**：
+- ⚠️ 需要生成 `compliance-report.json`
+- ⚠️ 如有敏感词，需用户确认处理方式
+- ⚠️ 敏感词处理完成后，提示："内容已通过合规检查，可以发布"
+
+#### 4. images/（处理后的图片）⭐ 必需
+
+从 `Materials/Medias/images/` 复制到 `Output/{platform}/images/`
+
+**封面图处理**：
+```
+1. 如果用户在 Materials/Medias/images/ 中已提供 cover.{ext} 文件：
+   → 直接复制到 Output/{platform}/images/cover.{ext}
+2. 如果没有命名为 cover 的文件：
+   → 选取最合适的一张图片，复制并重命名为 cover.{ext}
+   → 选择策略：优先选体现文章主题的图片
+3. 在 metadata.yaml 的 medias.cover.path 中记录相对路径
+   → 例如: "./images/cover.jpg"
 ```
 
-#### 4. images/（处理后的图片）
+### 步骤6.7：微信公众号后续处理提示
 
-从 Medias/images/ 复制到 Output/{platform}/images/
-
-### 步骤6.7：HTML导出（微信专用）
+**⚠️ 不在此步骤生成 HTML**，而是提示用户选择工作流
 
 ```
 如果平台 == wechat：
-- 将 article.md 转换为 HTML
-- 应用微信公众号样式
-- 保存为 article.html
+  提示用户选择工作流：
+  
+  "✅ 微信公众号版本已生成：Output/wechat/article.md
+  
+  🚀 下一步：请选择图片处理工作流
+  
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  【工作流A】一键处理（推荐）⭐
+  
+  直接使用 markdown-to-wechat：
+  @markdown-to-wechat Output/wechat/article.md
+  
+  ✅ 自动上传图片到 OSS
+  ✅ 自动转换为 HTML
+  ✅ 最简单快捷
+  
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  【工作流B】分步处理（如需自定义图床）
+  
+  ⚠️ 注意：当前文章使用的是相对路径（images/xxx.png）
+  如果要使用 markdown-image-uploader，需要先切换回工作区根目录路径：
+  
+  1. 修改图片路径（从 images/ 改为 Materials/Medias/images/）
+  2. 从工作区根目录运行上传工具
+  3. 再使用 markdown-to-wechat 转换 HTML
+  
+  ⚠️ 建议：如无特殊需求，请使用工作流A
+  
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 ```
 
-### 步骤6.8：生成质量报告
+**路径兼容性说明**：
+
+| 工作流 | 图片路径格式 | 适用工具 | 注意事项 |
+|-------|------------|---------|---------|
+| **A（默认）** | `images/xxx.png` | markdown-to-wechat | 图片在 Output/wechat/images/ |
+| **B（高级）** | `Materials/Medias/images/xxx.png` | markdown-image-uploader | 需从工作区根目录运行 |
+
+**⚠️ 如果用户报告"图片找不到"错误**：
+1. 检查当前使用的是哪种路径格式
+2. 检查工具运行的工作目录
+3. 如果使用外部图片上传工具，需要使用 `Materials/Medias/images/` 路径
+
+### 步骤6.8：生成质量报告（可选）
+
+**⚠️ 质量报告为可选项**，仅在用户明确要求时生成
 
 ```
-Output/_reports/
-├── seo-analysis.json（SEO分析）
-├── readability-score.json（可读性评分）
-└── platform-compliance.json（平台合规性检查）
+Output/_reports/（如需）
+├── seo-analysis.yaml（SEO分析）
+├── readability-score.yaml（可读性评分）
+└── platform-compliance.yaml（平台合规性检查）
 ```
 
-### 步骤6.9：生成工作区总览
+**默认行为**：跳过此步骤，不生成质量报告
 
-生成 `Output/README.md`:
+### 步骤6.9：完成提示
 
-```markdown
-# 文章工作区总览
-
-## 📊 生成统计
-- 原始素材字数：5000字
-- 通用初稿字数：2500字
-- 优化后字数：3200字
-- 质量评分：8.3/10（显著创新）
-
-## 📱 平台版本
-### 小红书版本
-- 文件：Output/xhs/article.md
-- 字数：650字
-- 配图：5张（1:1比例）
-- 敏感词检查：✅ 通过
-- 状态：✅ 可发布
-
-### 微信公众号版本
-- 文件：Output/wechat/article.md
-- 字数：3200字
-- 配图：5张（2.35:1比例）
-- 敏感词检查：✅ 通过
-- 状态：✅ 可发布
-
-## 📄 中间产物
-- 00_extracted_meta.yaml - 元数据提取
-- 01_topic_proposals.md - 选题方案（选择方案A）
-- 02_titles_and_outline.md - 标题+大纲（选择标题2）
-- 03_writing_plan.md - 写作剧本
-- 04_draft.md - 通用初稿
-- 05_quality_score_v1.md - 首次评分（6.8分）
-- 05_draft_optimized_v2.md - 优化版（8.3分）
-- 05_quality_score_v2.md - 二次评分
-
-## ✅ 下一步建议
-1. 检查各平台版本的 publish-checklist.md
-2. 根据清单完成最后检查
-3. 发布到对应平台
-```
+不生成 `Output/README.md`，直接在终端输出完成信息
 
 **输出**：
 - `Output/xhs/`（小红书完整输出）
+  - `article.md`、`metadata.yaml`、`compliance-report.json`、`images/`
 - `Output/wechat/`（微信公众号完整输出）
+  - `article.md`、`metadata.yaml`、`images/`
 - `Output/[其他平台]/`（如需）
-- `Output/_reports/`（质量报告）
-- `Output/README.md`（工作区总览）
+- `Output/_reports/`（质量报告，可选）
 
 **完成提示**：
 
 ```
 ✅ 内容创作完成！
 
-已生成平台版本：
-- 小红书：Output/xhs/article.md（✅ 通过敏感词检查）
-- 微信公众号：Output/wechat/article.md（✅ 通过敏感词检查）
+📊 质量评分：8.3/10（显著创新）
 
-质量评分：8.3/10（显著创新）
+📱 已生成平台版本：
 
-下一步：
-1. 查看 Output/README.md 了解完整情况
-2. 检查各平台的 publish-checklist.md
-3. 根据清单完成发布前检查
+### 小红书
+- 文件：Output/xhs/article.md
+- 字数：650字 | 配图：5张
+- 敏感词：✅ 通过检查
+- 状态：✅ 可发布
+
+### 微信公众号
+- 文件：Output/wechat/article.md
+- 字数：3200字 | 配图：5张
+- 状态：✅ 待转换
+
+🚀 下一步操作：
+
+**微信公众号**：
+请使用 markdown-to-wechat 转换为 HTML：
+@markdown-to-wechat Output/wechat/article.md
+
+**小红书**：
+可直接复制 Output/xhs/article.md 内容发布
 ```
 

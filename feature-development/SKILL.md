@@ -99,6 +99,16 @@ Skill 自动检测项目模式：
 - 生成数据库设计（表结构、建表SQL、索引设计）
 - 生成 API 设计（RESTful API、错误码定义）
 - 逐个审查确认
+- **部署询问**: 架构设计确认后，询问部署需求
+  - 参考: `references/deployment/platform-options.md`
+  - 询问后端部署: Supabase / 自行部署
+  - 询问前端部署: Vercel / Netlify / 自行部署
+  - 收集部署凭证: 参考 `references/deployment/credentials-checklist.md`
+- **集成询问**: 询问第三方服务集成需求
+  - 参考: `references/integrations/index.md`
+  - OAuth 集成: X/Twitter、GitHub、Google 等
+  - 支付集成: Stripe、支付宝、微信支付
+  - 通知集成: SendGrid、Twilio 等
 
 **阶段3: 任务拆解**
 - 参考: `references/greenfield/stage3-task-decomposition.md`
@@ -136,6 +146,10 @@ Skill 自动检测项目模式：
 - 运行 `scripts/generate_database_ddl.py` 生成数据库变更 DDL
 - 生成 API 变更设计（新增端点、修改现有 API）
 - 用户审查确认
+- **部署询问**: 如涉及新服务，询问部署需求
+  - 参考: `references/deployment/platform-options.md`
+- **集成询问**: 如涉及新第三方服务，询问集成需求
+  - 参考: `references/integrations/index.md`
 
 **阶段3: 增量任务拆解**
 - 参考: `references/brownfield/stage3-merge-tasks.md`
@@ -159,6 +173,18 @@ Skill 自动检测项目模式：
 
 - **高级实践（测试、异步任务、代码审查）**: `references/advanced-practices.md`
 - **文档粒度控制（拆分策略）**: `references/doc-granularity.md`
+
+### 部署与集成
+
+- **部署平台选项**: `references/deployment/platform-options.md`
+- **部署凭证清单**: `references/deployment/credentials-checklist.md`
+- **第三方集成总览**: `references/integrations/services-overview.md`
+- **X/Twitter OAuth**: `references/integrations/x-twitter-oauth.md`
+
+### 示例模板
+
+- **环境变量模板**: `examples/env-template.md`
+- **部署指南示例**: `examples/deployment-guide.md`
 
 ## 核心脚本
 
@@ -251,6 +277,28 @@ Agent:
 7. 阶段3：增量任务拆解
 8. 合并到 feature_list.json → 用户确认
 9. 阶段4：开发执行
+```
+
+### 示例3: 带部署和集成的新项目
+
+```
+用户: "我想做一个社交应用，支持 X 登录"
+Agent:
+1. 检测到无 doc/ 目录，进入模式1
+2. 阶段1：需求沟通（6个维度提问）
+3. 生成完整 PRD → 用户审查
+4. 阶段2：架构设计
+5. 生成技术方案 → 用户审查
+6. 部署询问：
+   - "是否需要部署后端？" → 是 → "选择 Supabase"
+   - "是否需要部署前端？" → 是 → "选择 Vercel"
+   - 收集 Supabase 凭证和 Vercel Token
+7. 集成询问：
+   - "需要 X OAuth 登录吗？" → 是
+   - 收集 X Client ID、Client Secret、Callback URL
+8. 生成环境变量模板 → 参考 examples/env-template.md
+9. 阶段3：任务拆解（含部署任务）
+10. 阶段4：开发执行
 ```
 
 ## 最佳实践

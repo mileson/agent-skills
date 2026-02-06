@@ -1,22 +1,26 @@
 #!/usr/bin/env python3
 """
-搜索自有内容 - Search Content
+搜索自有内容 - Search Content (支持平台分离)
 
-功能：基于查询词和过滤条件检索自有内容（own_works）
+功能：基于查询词和过滤条件检索自有内容（支持按平台搜索）
 
 用法：
     python3 search_content.py \\
         --query "查询词" \\
+        --platform <平台名> \\
         --filters "field:value,field:value" \\
         --top-k 5 \\
         --min-quality 6.0
 
 示例：
-    python3 search_content.py \\
-        --query "AI编程实战经验" \\
-        --filters "target_audience:独立开发者,technical_stack:Cursor" \\
-        --top-k 3 \\
-        --min-quality 8.0
+    # 搜索即刻动态
+    python3 search_content.py --query "Cursor开发" --platform jike --top-k 5
+    
+    # 搜索微信文章
+    python3 search_content.py --query "AI编程" --platform wechat --top-k 3
+    
+    # 搜索所有平台（默认）
+    python3 search_content.py --query "产品设计" --platform all --top-k 10
 """
 
 import argparse
@@ -27,20 +31,65 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 
 
-def load_index_data(output_dir: str) -> tuple:
-    """加载索引数据"""
+def get_available_platforms(output_dir: str) -> List[str]:
+    """获取所有可用的平台"""
+    output_path = Path(output_dir).expanduser()
+    platforms = []
+    
+    for file in output_path.glob("own_works_*.json"):
+        platform = file.stem.replace("own_works_", "")
+        platforms.append(platform)
+    
+    return platforms
+
+
+def load_index_data(output_dir: str, platform: str = 'all') -> tuple:
+    """加载索引数据（支持平台参数）"""
     try:
         output_path = Path(output_dir).expanduser()
         
-        # 加载自有内容索引
-        with open(output_path / "own_works.json", 'r', encoding='utf-8') as f:
-            own_works = json.load(f)
-        
-        # 加载搜索索引
-        with open(output_path / "search_index.json", 'r', encoding='utf-8') as f:
-            search_index = json.load(f)
-        
-        return own_works, search_index
+        if platform == 'all':
+            # 加载所有平台的索引
+            available_platforms = get_available_platforms(output_dir)
+            all_works = []
+            all_search_indices = {}
+            
+            for p in available_platforms:
+                with open(output_path / f"own_works_{p}.json", 'r', encoding='utf-8') as f:
+                    works = json.load(f)
+                    all_works.extend(works)
+                
+                with open(output_path / f"search_index_{p}.json", 'r', encoding='utf-8') as f:
+                    search_index = json.load(f)
+                    all_search_indices[p] = search_index
+            
+            # 合并搜索索引
+            merged_search_index = {
+                "inverted_index": {},
+                "tfidf_scores": {}
+            }
+            for p, idx in all_search_indices.items():
+                merged_search_index["inverted_index"].update(idx.get("inverted_index", {}))
+                merged_search_index["tfidf_scores"].update(idx.get("tfidf_scores", {}))
+            
+            return all_works, merged_search_index
+        else:
+            # 加载指定平台的索引
+            works_file = output_path / f"own_works_{platform}.json"
+            search_file = output_path / f"search_index_{platform}.json"
+            
+            if not works_file.exists():
+                print(f"❌ 平台 {platform} 的索引不存在", file=sys.stderr)
+                print(f"可用平台: {', '.join(get_available_platforms(output_dir))}", file=sys.stderr)
+                sys.exit(1)
+            
+            with open(works_file, 'r', encoding='utf-8') as f:
+                own_works = json.load(f)
+            
+            with open(search_file, 'r', encoding='utf-8') as f:
+                search_index = json.load(f)
+            
+            return own_works, search_index
     except Exception as e:
         print(f"❌ 加载索引失败: {e}", file=sys.stderr)
         sys.exit(1)
@@ -178,8 +227,9 @@ def search_content(query: str, filters: Dict[str, str], top_k: int, min_quality:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='搜索自有内容')
+    parser = argparse.ArgumentParser(description='搜索自有内容（支持平台分离）')
     parser.add_argument('--query', required=True, help='搜索查询词')
+    parser.add_argument('--platform', default='all', help='搜索平台（jike/wechat/xhs/all，默认：all）')
     parser.add_argument('--filters', help='过滤条件（格式：field:value,field:value）')
     parser.add_argument('--top-k', type=int, default=5, help='返回结果数量（默认：5）')
     parser.add_argument('--min-quality', type=float, default=6.0, help='最低质量分数（默认：6.0）')
@@ -189,10 +239,58 @@ def main():
     args = parser.parse_args()
     
     filters = parse_filters(args.filters)
-    result = search_content(args.query, filters, args.top_k, args.min_quality, args.output_dir)
+    
+    # 加载指定平台的索引
+    own_works, search_index = load_index_data(args.output_dir, args.platform)
+    
+    # 执行搜索
+    start_time = time.time()
+    
+    # 1. 解析过滤条件
+    filters = parse_filters(args.filters)
+    
+    # 2. 应用过滤条件
+    filtered_docs = apply_filters(own_works, filters)
+    
+    # 3. 质量分数过滤
+    filtered_docs = [doc for doc in filtered_docs if doc.get('quality_score', 0) >= args.min_quality]
+    
+    # 4. 计算相关性分数
+    results = []
+    for doc in filtered_docs:
+        relevance = calculate_relevance_score(args.query, doc, search_index)
+        results.append({
+            "document": doc,
+            "relevance_score": round(relevance, 4)
+        })
+    
+    # 5. 排序并返回 Top-K
+    results.sort(key=lambda x: (x['relevance_score'], x['document'].get('quality_score', 0)), reverse=True)
+    top_results = results[:args.top_k]
+    
+    # 6. 格式化输出
+    output = {
+        "query": args.query,
+        "platform": args.platform,
+        "results": [
+            {
+                "id": item['document']['id'],
+                "title": item['document']['title'],
+                "platform": item['document'].get('platform', 'unknown'),
+                "file_path": item['document']['file_path'],
+                "relevance_score": item['relevance_score'],
+                "quality_score": item['document'].get('quality_score', 0),
+                "word_count": item['document'].get('word_count', 0),
+                "reusable_elements": item['document'].get('reusable_elements', {})
+            }
+            for item in top_results
+        ],
+        "total_found": len(results),
+        "search_time_ms": int((time.time() - start_time) * 1000)
+    }
     
     # 输出 JSON 格式结果
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    print(json.dumps(output, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":

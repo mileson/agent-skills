@@ -264,8 +264,7 @@ def auto_replace(article_path, detected_words):
 ### Q4: 跳过检查有什么后果？
 
 选择"跳过检查"会：
-- 在 `metadata.json` 中标记 `compliance_warning: true`
-- 在 `publish-checklist.md` 中添加警告提示
+- 在 `metadata.yaml` 中标记 `compliance_warning: true`
 - 不影响内容生成流程，但发布后可能被平台限流
 
 ---

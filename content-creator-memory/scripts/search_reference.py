@@ -34,8 +34,8 @@ def load_reference_data(output_dir: str) -> tuple:
         with open(output_path / "reference_examples.json", 'r', encoding='utf-8') as f:
             references = json.load(f)
         
-        # 加载搜索索引
-        with open(output_path / "search_index.json", 'r', encoding='utf-8') as f:
+        # 加载标杆案例专用搜索索引
+        with open(output_path / "search_index_reference.json", 'r', encoding='utf-8') as f:
             search_index = json.load(f)
         
         return references, search_index

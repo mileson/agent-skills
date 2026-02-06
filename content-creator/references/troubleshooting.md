@@ -191,6 +191,132 @@ identify -verbose Medias/images/*.jpg | grep -i error
 
 ---
 
+## 问题4.5：图片上传工具报错"找不到图片文件" ⭐ 新增
+
+### 症状
+
+```
+❌ 错误：找不到图片文件
+路径：Medias/images/xxx.png
+工作目录：/Users/xxx/article/Output/wechat/
+```
+
+或者：
+
+```
+❌ 错误：图片路径不存在
+实际位置：Materials/Medias/images/xxx.png
+文章中写：Medias/images/xxx.png（少了 Materials/）
+```
+
+### 原因
+
+**核心问题**：图片路径格式与使用的工具不匹配
+
+content-creator 支持两种图片路径格式：
+
+| 路径格式 | 适用工具 | 工作目录 |
+|---------|---------|---------|
+| `images/xxx.png` | markdown-to-wechat | Output/wechat/ |
+| `Materials/Medias/images/xxx.png` | markdown-image-uploader | 工作区根目录 |
+
+如果路径格式与工具不匹配，就会报错"找不到图片"。
+
+### 解决方案
+
+#### 方案A：使用推荐工作流（最简单）⭐
+
+```bash
+# 直接使用 markdown-to-wechat
+@markdown-to-wechat Output/wechat/article.md
+
+# markdown-to-wechat 会：
+# 1. 从 Output/wechat/images/ 读取图片
+# 2. 自动上传到 OSS
+# 3. 转换为 HTML
+```
+
+**要求**：
+- ✅ 文章中的图片路径必须是 `images/xxx.png`
+- ✅ 图片文件必须在 `Output/wechat/images/` 目录
+- ✅ 从任意目录运行都可以（工具会自动处理）
+
+#### 方案B：使用外部图片上传工具
+
+如果你想使用 `markdown-image-uploader` 或其他自定义图片上传工具：
+
+**步骤1：检查文章中的图片路径**
+
+```bash
+# 查看文章中使用的是哪种路径格式
+grep "!\[.*\](" Output/wechat/article.md
+
+# 如果是 images/xxx.png，需要改为 Materials/Medias/images/xxx.png
+# 如果已是 Materials/Medias/images/xxx.png，跳过步骤2
+```
+
+**步骤2：修改图片路径（如果需要）**
+
+```bash
+# 方法1：手动编辑文章，将所有 images/ 改为 Materials/Medias/images/
+# 方法2：使用 sed 批量替换
+sed -i '' 's|images/|Materials/Medias/images/|g' Output/wechat/article.md
+```
+
+**步骤3：从工作区根目录运行上传工具**
+
+```bash
+# ⚠️ 重要：必须切换到工作区根目录
+cd "[工作区根目录]"
+
+# 运行图片上传工具
+markdown-image-uploader Output/wechat/article.md \
+  -o Output/wechat/article_with_cdn.md
+```
+
+**步骤4：转换为 HTML**
+
+```bash
+# 使用带 CDN 链接的版本
+@markdown-to-wechat Output/wechat/article_with_cdn.md
+```
+
+### 快速诊断
+
+**检查清单**：
+
+```bash
+# 1. 确认工作目录
+pwd
+
+# 2. 查看文章中的图片路径格式
+head -50 Output/wechat/article.md | grep "!\["
+
+# 3. 检查图片文件是否存在
+ls Output/wechat/images/
+ls Materials/Medias/images/
+
+# 4. 确认使用的工具
+# - markdown-to-wechat → 需要 images/ 路径
+# - markdown-image-uploader → 需要 Materials/Medias/images/ 路径
+```
+
+### 预防措施
+
+**推荐做法**：
+- ✅ 默认使用工作流A（markdown-to-wechat 一键处理）
+- ✅ 除非有特殊需求，否则不要手动修改图片路径
+- ✅ 如果使用外部工具，在阶段6生成时明确告知 Agent
+
+**告知 Agent 使用外部工具**：
+
+```
+生成微信版本，但保持图片路径为 Materials/Medias/images/，
+因为我要使用 markdown-image-uploader 上传图片
+```
+
+---
+
 ## 问题5：工作流中断如何恢复
 
 ### 症状
