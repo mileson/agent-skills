@@ -1,0 +1,79 @@
+# ============================================================
+# secrets-vault: 通用敏感信息保险库 - 示例文件
+# ============================================================
+# 复制此文件为 data/vault.yaml 并填入真实凭证
+#
+# 使用方式:
+#   1. cp vault.yaml.example data/vault.yaml
+#   2. 编辑 data/vault.yaml 填入真实凭证
+#   3. 或使用 manage_secrets.py set <namespace> <key> <value>
+#
+# 命名空间命名规范:
+#   github       - GitHub Token
+#   vercel       - Vercel API Token
+#   supabase     - Supabase 凭证
+#   x_oauth      - X/Twitter OAuth
+#   wechat_mp    - 微信公众号凭证
+#   openai       - OpenAI API
+#   personal     - 个人信息
+# ============================================================
+
+# ---- GitHub (必需) ----
+# 用于创建仓库、推送代码、关联 Vercel
+# 获取方式: https://github.com/settings/tokens
+# 权限要求: repo (完整仓库访问)
+github:
+  token: "ghp_your_github_token_here"
+  username: "your_username"
+  default_visibility: "private"
+
+# ---- Vercel (前端部署) ----
+# 用于关联 GitHub、自动部署
+# 获取方式: https://vercel.com/account/tokens
+# 权限要求: Full Account
+vercel:
+  token: "your_vercel_token_here"
+  team_id: "team_xxxx"  # 可选，个人账户可不填
+
+# ---- Supabase (后端部署) ----
+# 用于数据库、认证、存储
+# 获取方式: https://supabase.com/dashboard → Settings → API
+# 命名规范: <project_name>_supabase (如 molthands_supabase)
+molthands_supabase:
+  project_id: "abcdefghijklmnop"
+  url: "https://abcdefghijklmnop.supabase.co"
+  anon_key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  service_role_key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  database_url: "postgresql://postgres.abcdefghijklmnop:[PASSWORD]@aws-0-us-west-2.pooler.supabase.com:6543/postgres"
+
+# ---- X/Twitter OAuth ----
+# 用于 X 登录集成
+# 获取方式: https://developer.twitter.com/en/portal/dashboard
+x_oauth:
+  client_id: "your_client_id_here"
+  client_secret: "your_client_secret_here"
+  callback_url: "https://your-app.com/api/auth/callback/x"
+
+# ---- GitHub OAuth (可选) ----
+# 用于 GitHub 登录集成
+# 获取方式: https://github.com/settings/developers
+# github_oauth:
+#   client_id: "your_client_id_here"
+#   client_secret: "your_client_secret_here"
+#   callback_url: "https://your-app.com/api/auth/callback/github"
+
+# ---- 微信公众号 (可选) ----
+# 获取方式: https://mp.weixin.qq.com
+# wechat_mp:
+#   app_id: "wx_your_app_id"
+#   app_secret: "your_app_secret"
+
+# ---- OpenAI (可选) ----
+# 获取方式: https://platform.openai.com/api-keys
+# openai:
+#   api_key: "sk-..."
+
+# ---- 个人信息 (可选) ----
+# personal:
+#   name: "你的名字"
+#   email: "you@example.com"
