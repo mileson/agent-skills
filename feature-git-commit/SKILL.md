@@ -2,6 +2,7 @@
 name: feature-git-commit
 description: 生成功能导向的 Git Commit 信息并自动推送，聚焦用户价值而非代码实现
 disable-model-invocation: true
+context: fork
 ---
 
 # 功能导向 Git Commit

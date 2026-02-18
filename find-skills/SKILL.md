@@ -55,15 +55,6 @@ For example:
 - User asks "can you help me with PR reviews?" → `npx skills find pr review`
 - User asks "I need to create a changelog" → `npx skills find changelog`
 
-The command will return results like:
-
-```
-Install with npx skills add <owner/repo@skill>
-
-vercel-labs/agent-skills@vercel-react-best-practices
-└ https://skills.sh/vercel-labs/agent-skills/vercel-react-best-practices
-```
-
 ### Step 3: Present Options to the User
 
 When you find relevant skills, present them to the user with:
@@ -72,31 +63,25 @@ When you find relevant skills, present them to the user with:
 2. The install command they can run
 3. A link to learn more at skills.sh
 
-Example response:
+### Step 4: Install the Skill
 
-```
-I found a skill that might help! The "vercel-react-best-practices" skill provides
-React and Next.js performance optimization guidelines from Vercel Engineering.
+**IMPORTANT — Installation Target Directory**:
 
-To install it:
-npx skills add vercel-labs/agent-skills@vercel-react-best-practices
+The user's skills source of truth is `~/.cursor/skills/`（NOT `~/.agents/skills/`）. A launchd background daemon (`com.mileson.skills-sync`) automatically syncs this directory to all other Agent tools via symlinks.
 
-Learn more: https://skills.sh/vercel-labs/agent-skills/vercel-react-best-practices
-```
+**Preferred installation method:**
+1. Fetch the SKILL.md from the skill's GitHub repository directly
+2. Create the skill directory under `~/.cursor/skills/<skill-name>/`
+3. Write the SKILL.md file there
+4. The launchd daemon will automatically sync to `~/.codex/skills/`, `~/.claude/skills/`, `~/.trae/skills/`
 
-### Step 4: Offer to Install
-
-If the user wants to proceed, you can install the skill for them:
-
+**Fallback method** (if fetching from GitHub is not practical):
 ```bash
 npx skills add <owner/repo@skill> -g -y
 ```
-
-The `-g` flag installs globally (user-level) and `-y` skips confirmation prompts.
+Then copy the installed skill from `~/.agents/skills/` to `~/.cursor/skills/`.
 
 ## Common Skill Categories
-
-When searching, consider these common categories:
 
 | Category        | Example Queries                          |
 | --------------- | ---------------------------------------- |
@@ -121,13 +106,3 @@ If no relevant skills exist:
 1. Acknowledge that no existing skill was found
 2. Offer to help with the task directly using your general capabilities
 3. Suggest the user could create their own skill with `npx skills init`
-
-Example:
-
-```
-I searched for skills related to "xyz" but didn't find any matches.
-I can still help you with this task directly! Would you like me to proceed?
-
-If this is something you do often, you could create your own skill:
-npx skills init my-xyz-skill
-```

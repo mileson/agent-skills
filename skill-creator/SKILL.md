@@ -55,6 +55,8 @@ Every skill consists of a required SKILL.md file and optional bundled resources:
 skill-name/
 ├── SKILL.md           # Main instructions (required)
 ├── template.md        # Template for Claude to fill in (optional)
+├── data/              # Runtime data - persists across sessions (optional)
+│   └── memory.md      # Persistent memory for repeated-use skills
 ├── examples/
 │   └── sample.md      # Example output showing expected format (optional)
 ├── reference.md       # Detailed reference docs (optional)
@@ -279,7 +281,35 @@ graph TB
 
 #### Rendering Mermaid Diagrams
 
-When showing the Mermaid flow diagram for user confirmation, use the bundled script to render it as a PNG image:
+> **环境自适应规则**：展示 Mermaid 图表前，先判断运行环境，选择对应渲染方式。
+
+**环境判断方法**：
+
+| 判断条件 | 环境类型 | 渲染方式 |
+|----------|----------|----------|
+| 系统提示含 `"You operate in Cursor"` 或存在 IDE 相关上下文（如 open files、workspace 等） | IDE 环境（Cursor / VS Code 等） | 直接输出 ` ```mermaid ` 代码块 |
+| 上述条件均不满足（纯终端 / CLI） | CLI 环境（Claude Code 等） | 调用 `render_mermaid.py` 生成 PNG |
+
+##### 路径 A：IDE 环境（Cursor / VS Code 等）
+
+IDE 原生支持 Mermaid 渲染，**直接在回复中输出 Mermaid 代码块**即可，无需调用外部脚本：
+
+````markdown
+```mermaid
+graph TB
+    A[用户请求] --> B{检查类型}
+    B -->|新建| C[创建 Skill]
+    B -->|修改| D[更新 Skill]
+```
+````
+
+- 无需网络请求，无外部依赖
+- IDE 聊天界面自动渲染为可视化流程图
+- **不要**调用 `render_mermaid.py`，避免不必要的 PNG 文件生成
+
+##### 路径 B：CLI 环境（Claude Code 等）
+
+终端无法渲染 Mermaid 语法，使用脚本生成 PNG 图片：
 
 **STAGE 1 - User Confirmation (Preview)**
 
@@ -301,12 +331,6 @@ python3 ~/.claude/skills/skill-creator/scripts/render_mermaid.py \
   --skill-desc "API接口生成"
 ```
 
-**文件命名规则**:
-- **MANDATORY**: 必须提供 `--skill-desc` 参数
-- 格式: `skill-{描述}_{序号}.png` (自动递增序号)
-
-**重要**: Agent 必须根据当前讨论的 skill 内容，生成一个简洁的中文描述（3-8 个字），传入 `--skill-desc` 参数。这样可以让生成的图片文件名具有语义化，便于后续查找和管理。
-
 **STAGE 2 - After Skill Creation (Documentation)**
 
 Only AFTER the skill directory exists, you can output to the skill folder:
@@ -319,18 +343,12 @@ python3 ~/.claude/skills/skill-creator/scripts/render_mermaid.py \
   -o ~/.claude/skills/<skill-name>/workflow-diagram.png
 ```
 
-- **Script location**: `~/.claude/skills/skill-creator/scripts/render_mermaid.py`
-- **Default output**: `skill-creator/mermaid-imgs/skill-{描述}_{序号}.png`
-- **命名示例**:
-  ```
-  skill-新闻资讯总结_001.png
-  skill-新闻资讯总结_002.png  # 自动递增
-  skill-API接口生成_001.png
-  ```
-- **MANDATORY**: 必须提供 `--skill-desc` 参数，否则脚本会报错
-- **Dependencies**: Requires internet connection (uses Kroki API with fallback)
-- **Auto-preview**: Opens the rendered image automatically
-- **中文支持**: Kroki API 完全支持中文字符，可直接使用中文编写 Mermaid 代码
+**CLI 渲染参数说明**:
+- `--skill-desc`（**必填**）：Skill 的简短中文描述（3-8 字），用于生成语义化文件名
+- `-o`：指定输出路径（可选，默认输出到 `mermaid-imgs/`）
+- `--no-open`：不自动打开预览（可选）
+- 文件名格式：`skill-{描述}_{序号}.png`（自动递增序号）
+- 依赖：需要网络连接（使用 Kroki API）
 
 #### Mermaid 语言规范
 
@@ -400,6 +418,15 @@ Example: When building a `big-query` skill to handle queries like "How many user
 2. A `references/schema.md` file documenting the table schemas would be helpful to store in the skill
 
 To establish the skill's contents, analyze each concrete example to create a list of the reusable resources to include: scripts, references, examples, and templates.
+
+#### Persistent Memory Decision
+
+Determine whether the skill will be used repeatedly over time (persistent-use) or for one-off tasks:
+
+- **Persistent-use skills** (content-creator, deployment-pipeline, training-framework): Add a `data/memory.md` file and memory read/write instructions in SKILL.md. This allows the skill to accumulate learnings, track user preferences, and improve over time.
+- **One-off skills** (pdf-rotate, image-resize): Skip memory. Each execution is independent.
+
+**Persistent memory pattern**: See [references/persistent-memory.md](references/persistent-memory.md) for format specification, read/write rules, and capacity management.
 
 ### Step 2.5: Configure Frontmatter (CRITICAL)
 

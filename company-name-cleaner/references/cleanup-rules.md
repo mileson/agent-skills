@@ -1,116 +1,91 @@
-# 公司名称清理规则
+# 清理规则参考
 
-本文档列出了用于清理公司名称的完整规则列表，供参考和维护。
+脚本 `preprocess.py` 使用的完整规则。Agent 按需查阅。
 
-## 1. 地点前缀（Location Prefixes）
+## 1. ID 解析
 
-### 中国城市
-上海、深圳、北京、重庆、广州、杭州、南京、成都、武汉、西安、天津、苏州、郑州、长沙、东莞、青岛、沈阳、宁波、昆明、合肥、福州、厦门、无锡、济南、大连、哈尔滨、佛山、南通、长春、石家庄、贵阳、南宁、南昌、太原、常州、温州、嘉兴、珠海、惠州、中山、昆山、烟台、潍坊、临沂、淄博、济宁、泰安、威海、咸阳、洛阳、南阳、安阳、新乡、焦作、日照
+支持两种格式：
+- Decimal: `101 Hewlett-Packard Company`
+- Hex: `0x0976 Fauna Audio GmbH`
 
-### 地区
-台湾、香港、澳门、江苏
+无 ID 开头的行自动合并到上一条（处理多行条目）。
 
-## 2. 公司法律后缀（Legal Suffixes）
+## 2. 括号处理
 
-### 简短后缀
-| 后缀 | 说明 | 国家/地区 |
-| :--- | :--- | :--- |
-| LLC | Limited Liability Company | 美国 |
-| Inc / Inc. | Incorporated | 美国 |
-| Ltd / Ltd. | Limited | 英国/英联邦 |
-| Co / Co. | Company | 通用 |
-| Corp / Corp. | Corporation | 美国 |
-| GmbH | Gesellschaft mit beschränkter Haftung | 德国 |
-| AG | Aktiengesellschaft | 德国/瑞士 |
-| SE | Societas Europaea | 欧盟 |
-| SA | Société Anonyme / Sociedad Anónima | 法国/西班牙 |
-| Kft. | Korlátolt Felelősségű Társaság | 匈牙利 |
-| BV | Besloten Vennootschap | 荷兰 |
-| Oy | Osakeyhtiö | 芬兰 |
-| AB | Aktiebolag | 瑞典 |
-| S.L. | Sociedad Limitada | 西班牙 |
-| SLU | Sociedad Limitada Unipersonal | 西班牙 |
-| SpA | Società per Azioni | 意大利 |
-| d.o.o. | društvo s ograničenom odgovornošću | 克罗地亚/塞尔维亚 |
-| Sp. z o.o. | Spółka z ograniczoną odpowiedzialnością | 波兰 |
-| Pte. Ltd | Private Limited | 新加坡 |
-| Pty Ltd | Proprietary Limited | 澳大利亚 |
+| 括号内容 | 处理方式 |
+|----------|----------|
+| 全大写缩写 2-8 字符，如 `(CATC)` `(QuIC)` | **提取**为 `ExtractedAbbr` 列，作为品牌简称 hint |
+| `(formerly ...)` | 删除 |
+| `(Shanghai)` / `(HK)` 等地区标注 | 删除 |
+| 其他括号内容 | 删除 |
 
-### 复合后缀
-| 后缀 | 说明 |
-| :--- | :--- |
-| Co. Ltd. | Company Limited |
-| Co. Inc. | Company Incorporated |
-| Corp. Ltd. | Corporation Limited |
-| GmbH & Co. KG | 德国特殊合伙形式 |
-| & Co. KG | 德国合伙公司 |
-| & Affiliates | 及其关联公司 |
-| Private Limited | 私人有限公司 |
-| Sociedad Limitada | 西班牙有限公司 |
-| (with limited liability) | 有限责任 |
-| (Shanghai) / (ShenZhen) / (Xiamen) / (Jiangsu) | 地区标注 |
+排除列表（不提取为缩写）：`HK` `UK` `US` `EU` `OPC`
 
-## 3. 冗余描述词（Redundant Words）
+## 3. 地点前缀
 
-### 行业通用词
-| 词 | 中文 |
-| :--- | :--- |
-| Technology / Technologies | 技术 |
-| Electronics / Electronic | 电子 |
-| Engineering | 工程 |
-| System / Systems | 系统 |
-| Solution / Solutions | 解决方案 |
-| Device / Devices | 设备 |
-| Product / Products | 产品 |
-| Industry / Industries | 工业 |
-| Group | 集团 |
-| Holding / Holdings | 控股/控股公司 |
-| Enterprise / Enterprises | 企业 |
-| Business | 商务/业务 |
-| Network / Networks | 网络 |
-| Communication / Communications | 通信 |
-| Telecommunication / Telecommunications | 电信 |
-| Integrated | 集成 |
-| Innovative | 创新 |
-| Advanced | 先进 |
-| Digital | 数字 |
-| Smart | 智能 |
-| Global | 全球 |
-| International | 国际 |
-| Worldwide | 世界范围 |
-| Universal | 通用 |
+去除公司名称开头的城市/省份名，覆盖：
+- 中国主要城市：Shanghai、Shenzhen、Beijing、Guangzhou、Hangzhou 等 60+
+- 地区：Taiwan、Hong Kong、Macau、Jiangsu、Guangdong 等
+- 缩写：SZ（深圳）、GD（广东）
 
-## 4. 特殊字符清理
+仅去除**开头**的地点，不影响中间或结尾的地点词。
 
-- 括号及其内容：`(...)` → 删除
-- 引号：`" ' ` → 删除
-- 多余空格：合并为单个空格
-- 首尾标点：`. , ; : - _ + | / \` → 删除
+## 4. 法律后缀
 
-## 5. 处理顺序
+### 复合后缀（优先匹配）
+
+`GmbH & Co. KGaA` · `GmbH & Co. KG` · `SE & Co. KG` · `AG & Co. KG` · `Sp. z o.o. sp. k.` · `Sp. z o.o.` · `Pte. Ltd.` · `Pty Ltd` · `Private Limited` · `Co., Ltd.` · `Co. Ltd.` · `with limited liability` · `Sociedad Limitada` · `Limited Liability`
+
+### 标准后缀
+
+| 后缀 | 地区 |
+|------|------|
+| LLC, Inc, Ltd, Co, Corp | 美国/英国 |
+| GmbH, AG, SE, KG, KGaA, UG | 德国/瑞士 |
+| SA, SAS, SARL, SL, SLU, SpA | 法国/西班牙/意大利 |
+| BV, NV | 荷兰 |
+| Oy, Oyj, AB, ASA, A/S, ApS | 北欧 |
+| Kft | 匈牙利 |
+| d.o.o., s.r.o., Sp. z o.o. | 中东欧 |
+| Pte Ltd, Pty Ltd | 新加坡/澳大利亚 |
+| LTDA, OÜ, PLC | 其他 |
+| Corporation, Company, Incorporated, Enterprises, Holdings, Group, Laboratories, Foundation, Institute, Partners, Associates | 通用英文 |
+
+### & 保护规则
+
+**仅在法律后缀模式中处理 `&`**（如 `& Co. KG`），不全局替换。品牌名中的 `&` 保留：
+- `Bang & Olufsen` → 保留
+- `Rohde & Schwarz` → 保留
+- `B&W Group` → 去除 `Group`，保留 `B&W`
+
+## 5. 冗余描述词
+
+去除以下行业通用词（大小写不敏感）：
+
+Technology · Technologies · Electronics · Electronic · Semiconductor · Semiconductors · Microelectronics · Optoelectronics · Engineering · Systems · System · Solutions · Solution · Devices · Device · Products · Product · Industries · Industry · Networks · Network · Networking · Communications · Communication · Telecommunications · Innovative · Advanced · Digital · Smart · Global · International · Worldwide · Universal · Integrated · Manufacturing · Automation
+
+### 最小长度保护
+
+- 处理后结果 < 2 字符 → 回退到处理前
+- 确保不会清空公司名
+
+## 6. 特殊字符
+
+- 引号 `" ' `` → 删除
+- 反斜杠 `\` → 删除
+- 结尾标点 `. , ; :` → 删除
+- 开头标点 `. , ; : _ + | / \` → 删除（保留 `-`）
+- 多余空格 → 合并
+
+## 7. 处理顺序
 
 ```
-原始输入
-  ↓
-1. 提取数字编号和名称
-  ↓
-2. 去除地点前缀
-  ↓
-3. 去除法律后缀
-  ↓
-4. 去除冗余描述词（仅当名称 > 2 个词时）
-  ↓
-5. 清理特殊字符
-  ↓
-输出中间结果
+原始名称
+ → 提取括号缩写 + 去除括号
+ → 去除地点前缀
+ → 去除法律后缀
+ → 去除冗余描述词
+ → 清理特殊字符
+ → 最终保护检查
+ → 输出
 ```
-
-## 6. 示例
-
-| 输入 | 中间结果 | 说明 |
-| :--- | :--- | :--- |
-| `2208 Aclara Technologies LLC` | `Aclara` | 去除后缀 + 冗余词 |
-| `2212 Realme Chongqing Mobile Telecommunications Corp. Ltd.` | `Realme` | 去除地点 + 后缀 + 冗余词 |
-| `2255 betternotstealmybike UG (with limited liability)` | `betternotstealmybike` | 去除括号 + 后缀 |
-| `2269 -Q` | `-Q` | 保持原样（无后缀） |
-| `2253 ifly` | `ifly` | 保持原样（无后缀） |

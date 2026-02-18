@@ -3,11 +3,11 @@
 # 文件说明书 (File Manual)
 # ============================================================
 # 核心功能 (Core Function)
-# 从 ~/.secrets/vault.yaml 读取指定命名空间的凭证，以 JSON 格式输出到 stdout。
+# 从 secrets-vault/data/vault.yaml 读取指定命名空间的凭证，以 JSON 格式输出到 stdout。
 #
 # 输入 (Input)
 # - 命令行参数: namespace（必需）、key（可选，指定字段名）
-# - 数据文件: ~/.secrets/vault.yaml
+# - 数据文件: ~/.claude/skills/secrets-vault/data/vault.yaml
 #
 # 输出 (Output)
 # - stdout: JSON 格式的凭证数据（供其他脚本 subprocess 调用并 json.loads 解析）
@@ -30,7 +30,8 @@ import json
 import sys
 from pathlib import Path
 
-VAULT_PATH = Path.home() / ".secrets" / "vault.yaml"
+# vault.yaml 位于 skill 目录的 data 子目录
+VAULT_PATH = Path(__file__).parent.parent / "data" / "vault.yaml"
 
 
 def load_vault():
@@ -64,7 +65,7 @@ def main():
     if len(sys.argv) < 2:
         print(
             "Usage: get_secret.py <namespace> [key]\n"
-            "  namespace  Service namespace in vault.yaml (e.g. wechat_mp, personal)\n"
+            "  namespace  Service namespace in vault.yaml (e.g. github, vercel, supabase)\n"
             "  key        Optional specific field to retrieve",
             file=sys.stderr,
         )

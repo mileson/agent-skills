@@ -101,14 +101,21 @@ Skill 自动检测项目模式：
 - 逐个审查确认
 - **部署询问**: 架构设计确认后，询问部署需求
   - 参考: `references/deployment/platform-options.md`
+  - 询问代码托管: GitHub / GitLab / Bitbucket
   - 询问后端部署: Supabase / 自行部署
   - 询问前端部署: Vercel / Netlify / 自行部署
-  - 收集部署凭证: 参考 `references/deployment/credentials-checklist.md`
+  - **所有凭证通过 secrets-vault 管理**: 参考 `references/deployment/credentials-checklist.md`
+- **GitHub + Vercel 集成**: 如选择 GitHub + Vercel 组合
+  - 参考: `references/deployment/github-integration.md`
+  - 使用脚本自动创建 GitHub 仓库
+  - 使用脚本自动关联 Vercel
+  - 验证自动部署功能
 - **集成询问**: 询问第三方服务集成需求
   - 参考: `references/integrations/index.md`
   - OAuth 集成: X/Twitter、GitHub、Google 等
   - 支付集成: Stripe、支付宝、微信支付
   - 通知集成: SendGrid、Twilio 等
+  - **所有凭证通过 secrets-vault 管理**
 
 **阶段3: 任务拆解**
 - 参考: `references/greenfield/stage3-task-decomposition.md`
@@ -119,7 +126,15 @@ Skill 自动检测项目模式：
 **阶段4: 开发执行**
 - 参考: `references/greenfield/stage4-coding.md`
 - Initializer Agent 初始化环境（init.sh、Git 基线）
+- **GitHub 仓库创建**（如需部署）:
+  - 使用 `scripts/deployment/create_github_repo.py` 创建仓库
+  - 初始化 Git 并推送代码
+  - 参考: `references/deployment/github-integration.md`
 - Coding Agent 循环实现功能（读取 progress → 实现 → 测试 → 提交 → 更新 progress）
+- **Vercel 关联与验证**（如使用 Vercel）:
+  - 使用 `scripts/deployment/link_vercel_github.py` 关联 Vercel
+  - 使用 `scripts/deployment/verify_deployment.py` 验证部署状态
+  - 确保每次推送后自动部署成功
 - 使用 `scripts/checkpoint_manager.py` 管理检查点
 - 使用 `scripts/handle_agent_error.py` 处理错误
 
@@ -148,8 +163,11 @@ Skill 自动检测项目模式：
 - 用户审查确认
 - **部署询问**: 如涉及新服务，询问部署需求
   - 参考: `references/deployment/platform-options.md`
+  - **所有凭证通过 secrets-vault 管理**
+  - 如需 GitHub + Vercel 集成: 参考 `references/deployment/github-integration.md`
 - **集成询问**: 如涉及新第三方服务，询问集成需求
   - 参考: `references/integrations/index.md`
+  - **所有凭证通过 secrets-vault 管理**
 
 **阶段3: 增量任务拆解**
 - 参考: `references/brownfield/stage3-merge-tasks.md`
@@ -160,6 +178,7 @@ Skill 自动检测项目模式：
 
 **阶段4: 开发执行**
 - 与模式1 相同，参考 `references/brownfield/stage4-coding.md`
+- 包含 GitHub + Vercel 集成流程（如需部署）
 
 ## 参考资料
 
@@ -178,6 +197,7 @@ Skill 自动检测项目模式：
 
 - **部署平台选项**: `references/deployment/platform-options.md`
 - **部署凭证清单**: `references/deployment/credentials-checklist.md`
+- **GitHub + Vercel 集成**: `references/deployment/github-integration.md`
 - **第三方集成总览**: `references/integrations/services-overview.md`
 - **X/Twitter OAuth**: `references/integrations/x-twitter-oauth.md`
 
@@ -185,6 +205,13 @@ Skill 自动检测项目模式：
 
 - **环境变量模板**: `examples/env-template.md`
 - **部署指南示例**: `examples/deployment-guide.md`
+- **GitHub + Vercel 部署示例**: `examples/github-vercel-deployment.md`
+
+### 凭证管理
+
+- **secrets-vault**: 所有敏感信息通过 `~/.secrets/vault.yaml` 集中管理
+- 命名空间: `github`, `vercel`, `supabase`, `x_oauth` 等
+- 调用方式: `python3 ~/.claude/skills/secrets-vault/scripts/get_secret.py <namespace>`
 
 ## 核心脚本
 
@@ -207,6 +234,12 @@ Skill 自动检测项目模式：
 - `scripts/check_doc_size.py` - 检查文档行数（警告/错误/拆分建议）
 - `scripts/handle_agent_error.py` - 错误处理（JSON 格式）
 - `scripts/checkpoint_manager.py` - 检查点管理
+
+### 部署脚本
+
+- `scripts/deployment/create_github_repo.py` - 创建 GitHub 仓库
+- `scripts/deployment/link_vercel_github.py` - 关联 Vercel 项目
+- `scripts/deployment/verify_deployment.py` - 验证部署状态
 
 ## 模板文件
 
@@ -290,15 +323,22 @@ Agent:
 4. 阶段2：架构设计
 5. 生成技术方案 → 用户审查
 6. 部署询问：
+   - "是否需要代码托管？" → 是 → "选择 GitHub"
    - "是否需要部署后端？" → 是 → "选择 Supabase"
    - "是否需要部署前端？" → 是 → "选择 Vercel"
-   - 收集 Supabase 凭证和 Vercel Token
+   - 收集凭证并存储到 secrets-vault（github, vercel, supabase）
 7. 集成询问：
    - "需要 X OAuth 登录吗？" → 是
-   - 收集 X Client ID、Client Secret、Callback URL
+   - 收集 X 凭证并存储到 secrets-vault（x_oauth）
 8. 生成环境变量模板 → 参考 examples/env-template.md
 9. 阶段3：任务拆解（含部署任务）
 10. 阶段4：开发执行
+    a. 初始化环境
+    b. 创建 GitHub 仓库 → scripts/deployment/create_github_repo.py
+    c. Git 初始化并推送
+    d. 关联 Vercel → scripts/deployment/link_vercel_github.py
+    e. 验证部署 → scripts/deployment/verify_deployment.py
+    f. 循环实现功能
 ```
 
 ## 最佳实践

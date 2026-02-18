@@ -1,26 +1,30 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-公司名称预处理脚本
+公司名称预处理脚本 — 确定性规则清理
 
 功能：
-1. 去除数字编号前缀
-2. 去除地点前缀
-3. 去除公司法律后缀
-4. 清理特殊字符和多余空格
+1. 解析编号（decimal + hex）
+2. 合并多行条目
+3. 提取括号内缩写（全大写且 <= 8 字符）
+4. 去除 (formerly ...) 等括号内容
+5. 去除地点前缀
+6. 去除法律后缀（保护品牌中的 &）
+7. 去除冗余描述词（有最小长度保护）
+8. 清理特殊字符
 
-输入：标准输入或文件，格式为 "数字 公司名称" 每行一个
-输出：
-  - 第一次输出：数字|处理后|原始（方便核对）
-  - 第二次输出：数字|处理后（供后续处理）
+输入：标准输入或文件，格式为 "编号 公司名称" 每行一个
+输出：TSV 格式 → ID\t清理后\t提取缩写\t原名
 """
 
 import sys
 import re
-import os
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
-# 地点前缀列表（常见中国城市和地区）
+
+# ============================================================
+# 配置：地点前缀
+# ============================================================
 LOCATION_PREFIXES = [
     'Shanghai', 'Shenzhen', 'Beijing', 'Chongqing', 'Guangzhou', 'Hangzhou',
     'Nanjing', 'Chengdu', 'Wuhan', 'Xian', 'Tianjin', 'Suzhou', 'Zhengzhou',
@@ -28,403 +32,347 @@ LOCATION_PREFIXES = [
     'Hefei', 'Fuzhou', 'Xiamen', 'Wuxi', 'Jinan', 'Dalian', 'Harbin',
     'Taipei', 'Taiwan', 'Hong Kong', 'Macau',
     'Foshan', 'Nantong', 'Changchun', 'Shijiazhuang', 'Guiyang', 'Nanning',
-    'Nanchang', 'Taiyuan', 'Changzhou', 'Ningbo', 'Wenzhou', 'Jiaxing',
-    'Zhuhai', 'Huizhou', 'Zhongshan', 'Kunshan', 'Nantong', 'Yantai',
-    'Weifang', 'Linyi', 'Zibo', 'Jining', "Tai'an", 'Weihai',
+    'Nanchang', 'Taiyuan', 'Changzhou', 'Wenzhou', 'Jiaxing',
+    'Zhuhai', 'Huizhou', 'Zhongshan', 'Kunshan', 'Yantai',
+    'Weifang', 'Linyi', 'Zibo', 'Jining', 'Weihai',
     'Xianyang', 'Luoyang', 'Nanyang', 'Anyang', 'Xinxiang', 'Jiaozuo',
-    'Qingdao', 'Yantai', 'Weihai', 'Rizhao',
+    'Rizhao', 'Wuhu', 'Zhuhai', 'Tangshan', 'Guilin', 'Jiangsu',
+    'Guangdong', 'Heilongjiang', 'Anhui', 'Sichuan', 'Fujian', 'Hubei',
+    'Hunan', 'Hebei', 'Henan', 'Zhejiang',
+    # 拼音形式的 SZ/GD 等
+    'SZ', 'GD',
 ]
 
-# 公司法律后缀（按频率排序）- 增强版本
-LEGAL_SUFFIXES = [
-    # ========== 简短后缀（优先匹配）==========
-    r'\bLLC\.?\b',                           # Limited Liability Company
-    r'\bInc\.?\b',                           # Incorporated
-    r'\blimited\b',                          # 小写
-    r'\bLimited\b',                          # 首字母大写
-    r'\bLIMITED\b',                          # 全大写
-    r'\bLTD\b',                              # Limited (无点)
-    r'\bLtd\.?\b',                           # Limited (有点或无点)
-    r'\bCO\.?\s+LTD\.?\b',                   # Company Limited
-    r'\bCo\.?\s+Ltd\.?\b',                   # Company Limited (混合)
-    r'\bCO\.?\s+INC\.?\b',                   # Company Incorporated
-    r'\bCo\.?\s+Inc\.?\b',                   # Company Incorporated (混合)
-    r'\bCo\.?\b',                            # Company
-    r'\bCorp\.?\b',                          # Corporation
-    r'\bGmbH\b',                             # 德国
-    r'\bAG\b',                               # 德国/瑞士
-    r'\bSE\b',                               # 欧盟公司
-    r'\bSA\b',                               # 法国/西班牙
-    r'\bSP\.?\b',                            # Sociedad Pública
-    r'\bKft\.?\b',                           # 匈牙利
-    r'\bb\.?v\.?\b',                         # 荷兰
-    r'\bUG\b',                               # 德国
-    r'\bUG\s+\(haftungsbeschränkt\)',        # 德国
-    r'\bOy\b',                               # 芬兰
-    r'\bAB\b',                               # 瑞典
-    r'\bS\.?L\.?\b',                         # 西班牙
-    r'\bSLU\b',                              # 西班牙
-    r'\bSpA\b',                              # 意大利
-    r'\bd\.?o\.?o\.?\b',                     # 克罗地亚/塞尔维亚
-    r'\bSp\.?\s*z\s+o\.?o\.?\b',             # 波兰
-    r'\bPte\.?\s+Ltd\.?\b',                  # 新加坡
-    r'\bPty\s+Ltd\.?\b',                     # 澳大利亚
-    r'\bLtd\.?\s+and\s+Co\.?\b',             # 英国
-    r'\bLtd\.?\s*&\s+Co\.?\b',               # 英国
-
-    # ========== 国际/地区扩展后缀 ==========
-    r'\bS\.?A\.?R\.?L\.?\b',                 # 法国
-    r'\bS\.?r\.?l\.?\b',                     # 罗马尼亚
-    r'\bSro\.?\b',                           # 斯洛伐克
-    r'\bs\.?r\.?o\.?\b',                     # 斯洛文尼亚
-    r'\bd\.?\s*d\.?\b',                      # 波斯尼亚
-    r'\bEIRL\b',                             # 智利
-    r'\bS\.?A\.?S\.?\b',                     # 秘鲁
-    r'\bLTDA\b',                             # 巴西
-    r'\bS\.?de\s+R\.?L\.?\b',                # 墨西哥
-    r'\bRL\b',                               # 墨西哥
-    r'\bS\.?A\.?\b',                         # 罗马尼亚/波兰
-    r'\bZ\.?o\.?o\.?\b',                     # 波兰
-
-    # ========== 较长后缀 ==========
-    r'\bCompany\b',
-    r'\bCorporation\b',
-    r'\bIncorporated\b',
-    r'\bEnterprises\b',
-    r'\bEnterprise\b',
-    r'\bGroup\b',
-    r'\bAssociates?\b',                      # 专业公司
-    r'\bPartners?\b',                        # 合伙公司
-    r'\bPartnership\b',                      # 合伙企业
-    r'\bFoundation\b',                       # 基金会
-    r'\bInstitute\b',                        # 研究所
-    r'\bLaboratories?\b',                    # 实验室
-    r'\bHoldings?\b',                        # 控股
-
-    # ========== 复合后缀（重要！）==========
-    r'\bCorp\.?\s+Ltd\.?\b',
-    r'\bGmbH\s+&\s+Co\.?\s+KG\b',
-    r'\b&\s+Co\.?\s+KG\b',
-    r'\b&\s+Affiliates\b',
-    r'\b&\s+Co\.?\b',
-    r'\b&\s+Company\b',
-    r'\b&\s+KG\b',                           # 德国：去除 Gmbh 后残留
-    r'\bKG\b',                               # 德国 Kommanditgesellschaft
-    r'\(with\s+limited\s+liability\)',
-    r'\(with\s+Ltd\s+liability\)',
-    r'\bwith\s+limited\s+liability\b',       # 无括号版本
-    r'\bwith\s+Ltd\s+liability\b',
-    r'\bLimited\s+Liability\b',              # 直接组合（必须在整个词之前）
-    r'\bLIMITED\s+LIABILITY\b',              # 全大写
-    r'\blimited\s+liability\b',              # 全小写
-    r'\bLiability\s+(Company|Corporation)\b',  # Liability Company/Corporation
-    r'\s+Liability$',                        # 结尾的单独 Liability
-    r'\(Shanghai\)',
-    r'\(ShenZhen\)',
-    r'\(Xiamen\)',
-    r'\(Jiangsu\)',
-    r'\bPrivate\s+Limited\b',
-    r'\bPte\s+Ltd\b',
-    r'\bSociedad\s+Limitada\b',
-    r'\bb\.?v\.?b\.?a\.?\b',
-
-    # ========== 后缀残留清理 ==========
-    r'\s+and\s+Company$',                    # "and Company" 结尾
-    r'\s+&\s+Company$',                      # "& Company" 结尾
-    r'\s+and\s+Sons$',                       # "and Sons" 结尾
-    r'\s+&\s+Sons$',                         # "& Sons" 结尾
+# ============================================================
+# 配置：法律后缀（按匹配优先级排序）
+# ============================================================
+# 复合后缀必须排在简单后缀之前
+LEGAL_SUFFIXES_ORDERED = [
+    # === 超长复合后缀（最先匹配）===
+    r'GmbH\s*&\s*Co\.?\s*KGaA',
+    r'GmbH\s*&\s*Co\.?\s*KG',
+    r'GmbH\s*&\s*Co\.?\s*OHG',
+    r'SE\s*&\s*Co\.?\s*KGaA',
+    r'SE\s*&\s*Co\.?\s*KG',
+    r'AG\s*&\s*Co\.?\s*KG',
+    r'AG\s*&\s*Co\.?\s*KGaA',
+    r'Corp\.?\s*&\s*Co\.?\s*KG',
+    # === 长复合后缀 ===
+    r'Sp\.?\s*z\s*o\.?\s*o\.?\s*sp\.?\s*k\.?',  # 波兰 sp. z o.o. sp. k.
+    r'Sp\.?\s*z\.?\s*o\.?\s*o\.?',    # 波兰 Sp. z o.o.
+    r'Pte\.?\s*Ltd\.?',               # 新加坡
+    r'Pty\.?\s*Ltd\.?',               # 澳大利亚
+    r'Private\s+Limited',
+    r'CO\.?\s*,?\s*LTD\.?',           # Co., Ltd.  CO. LTD
+    r'Co\.?\s*,?\s*Ltd\.?',
+    r'with\s+limited\s+liability',
+    r'Sociedad\s+Limitada',
+    r'Limited\s+Liability',
+    r'Korlátolt\s+Felelősségű\s+Társaság',
+    r'Korlatolt\s+Felelossegu\s+Tarsasag',
+    # === 标准后缀 ===
+    r'Corporation',
+    r'Incorporated',
+    r'Company',
+    r'Enterprises?',
+    r'Laboratories?',
+    r'Holdings?',
+    r'Foundation',
+    r'Institute',
+    r'Partners?(?:hip)?',
+    r'Associates?',
+    r'LLC\.?',
+    r'Inc\.?',
+    r'LIMITED',
+    r'Limited',
+    r'limited',
+    r'LTD\.?',
+    r'Ltd\.?',
+    r'Corp\.?',
+    r'Co\.?',
+    r'GmbH',
+    r'KGaA',
+    r'KG',
+    r'AG',
+    r'SE',
+    r'SA',
+    r'S\.?A\.?S\.?',
+    r'S\.?A\.?R\.?L\.?',
+    r'S\.?r\.?l\.?',
+    r'S\.?L\.?U?',
+    r'S\.?p\.?A\.?',
+    r'S\.?de\s+R\.?L\.?',
+    r'UG',
+    r'Kft\.?',
+    r'[Bb]\.?[Vv]\.?',
+    r'[Oo]y\.?',
+    r'AB',
+    r'ASA',
+    r'A/?S',
+    r'ApS',
+    r'[Dd]\.?[Oo]\.?[Oo]\.?',
+    r'[Ss]\.?[Rr]\.?[Oo]\.?',
+    r'LTDA\.?',
+    r'OÜ',
+    r'Oyj',
+    r'N\.?V\.?',
+    r'plc',
+    r'PLC',
+    r'Group',
 ]
 
-# 冗余描述词（去除这些行业通用词）
+# ============================================================
+# 配置：冗余描述词
+# ============================================================
 REDUNDANT_WORDS = [
-    r'\bTechnology\b',
-    r'\bTechnologies\b',
-    r'\bElectronics?\b',
-    r'\bEngineering\b',
-    r'\bSystems?\b',
-    r'\bSolutions?\b',
-    r'\bDevices?\b',
-    r'\bProducts?\b',
-    r'\bIndustries?\b',
-    r'\bHoldings?\b',
-    r'\bBusiness\b',
-    r'\bNetworks?\b',
-    r'\bCommunications?\b',
-    r'\bTelecommunications?\b',
-    r'\bInnovative\b',
-    r'\bAdvanced\b',
-    r'\bDigital\b',
-    r'\bSmart\b',
-    r'\bGlobal\b',
-    r'\bInternational\b',
-    r'\bWorldwide\b',
-    r'\bUniversal\b',
-    r'\bIntegrated\b',
-    r'\bSolutions\b',
+    'Technology', 'Technologies', 'TECHNOLOGY', 'TECHNOLOGIES',
+    'Electronics?', 'ELECTRONICS?',
+    'Semiconductor', 'Semiconductors', 'SEMICONDUCTOR',
+    'Microelectronics', 'MICROELECTRONICS',
+    'Optoelectronics', 'OPTOELECTRONICS',
+    'Engineering', 'ENGINEERING',
+    'Systems?', 'SYSTEMS?',
+    'Solutions?', 'SOLUTIONS?',
+    'Devices?', 'DEVICES?',
+    'Products?', 'PRODUCTS?',
+    'Industries?', 'INDUSTRIES?',
+    'Networks?', 'NETWORKS?',
+    'Networking',
+    'Communications?', 'COMMUNICATIONS?',
+    'Telecommunications?',
+    'Innovative', 'Advanced',
+    'Digital', 'Smart',
+    'Global', 'International', 'Worldwide', 'Universal',
+    'Integrated',
+    'Manufacturing',
+    'Automation',
 ]
 
 
-def extract_number_and_name(line: str) -> Tuple[str, str]:
+# ============================================================
+# 解析
+# ============================================================
+def parse_lines(raw_lines: List[str]) -> List[Tuple[str, str]]:
     """
-    提取数字编号和公司名称
-
-    Args:
-        line: 输入行，格式为 "数字 公司名称" 或仅 "公司名称"
+    解析输入行，支持 decimal 和 hex ID，自动合并多行条目。
 
     Returns:
-        (数字, 公司名称) 元组
+        [(id, company_name), ...]
     """
-    # 尝试匹配开头的数字
-    match = re.match(r'^(\d+)\s+(.+)$', line.strip())
-    if match:
-        return match.group(1), match.group(2)
-    # 如果没有数字，返回空作为编号
-    return '', line.strip()
+    id_pattern = re.compile(r'^(0x[0-9a-fA-F]+|\d+)\s+(.+)$')
+    entries = []
+
+    for line in raw_lines:
+        line = line.strip()
+        if not line:
+            continue
+
+        match = id_pattern.match(line)
+        if match:
+            entries.append((match.group(1), match.group(2)))
+        else:
+            # 无 ID 开头 → 合并到上一条（多行条目）
+            if entries:
+                prev_id, prev_name = entries[-1]
+                entries[-1] = (prev_id, prev_name + ' ' + line)
+
+    return entries
 
 
+# ============================================================
+# 括号处理
+# ============================================================
+def extract_parenthetical_abbr(name: str) -> Tuple[str, Optional[str]]:
+    """
+    提取括号内的缩写（全大写/数字混合，<= 8 字符），
+    同时去除所有括号内容。
+
+    Returns:
+        (去除括号后的名称, 提取到的缩写 or None)
+    """
+    extracted_abbr = None
+
+    # 查找所有括号内容
+    parens = re.findall(r'\(([^)]+)\)', name)
+    for content in parens:
+        content_stripped = content.strip()
+        # 缩写特征：主要大写+少量小写，无空格，2-8字符，含至少1个字母
+        # 匹配：CATC, QuIC, ACECAD 等
+        # 排除：国家/地区代码、法律术语、年份、地名
+        ABBR_EXCLUSIONS = {
+            'HK', 'UK', 'US', 'EU', 'NZ', 'AU', 'CN', 'JP', 'KR', 'TW',
+            'DE', 'FR', 'IT', 'ES', 'NL', 'SE', 'NO', 'DK', 'FI', 'CH',
+            'OPC', 'PTY', 'CJSC', 'JSC', 'LTD', 'LLC', 'INC',
+            'Shanghai', 'ShenZhen', 'Xiamen', 'Jiangsu', 'THAILAND',
+            'formerly', 'Formerly',
+        }
+        is_abbr = (
+            re.match(r'^[A-Za-z0-9]{2,8}$', content_stripped)
+            and sum(1 for c in content_stripped if c.isupper()) >= len(content_stripped) * 0.4
+            and any(c.isalpha() for c in content_stripped)
+            and not content_stripped.isdigit()  # 排除纯数字（年份如 2003）
+            and content_stripped not in ABBR_EXCLUSIONS
+            and not content_stripped.lower().startswith('formerly')
+        )
+        if is_abbr:
+            extracted_abbr = content_stripped
+
+    # 去除所有括号及内容
+    cleaned = re.sub(r'\s*\([^)]*\)', '', name)
+    return cleaned.strip(), extracted_abbr
+
+
+# ============================================================
+# 地点前缀
+# ============================================================
 def remove_location_prefix(name: str) -> str:
-    """
-    去除地点前缀和中间的地点词
-
-    Args:
-        name: 公司名称
-
-    Returns:
-        去除地点后的名称
-    """
-    # 按长度降序排序，优先匹配长的地点名
-    sorted_locations = sorted(LOCATION_PREFIXES, key=len, reverse=True)
-
-    # 先去除开头的地点
-    for location in sorted_locations:
-        pattern = rf'^{re.escape(location)}[\s,]+'
+    """去除开头的地点前缀"""
+    sorted_locs = sorted(LOCATION_PREFIXES, key=len, reverse=True)
+    for loc in sorted_locs:
+        pattern = rf'^{re.escape(loc)}[\s,]+'
         if re.match(pattern, name, re.IGNORECASE):
-            name = re.sub(pattern, '', name, flags=re.IGNORECASE)
+            name = re.sub(pattern, '', name, count=1, flags=re.IGNORECASE).strip()
             break
-
-    # 再去除中间的地点（前后都有其他词的情况）
-    for location in sorted_locations:
-        # 匹配 "地点名 " 或 " 地点名 " 模式
-        pattern = rf'\s{re.escape(location)}\s'
-        if re.search(pattern, name, re.IGNORECASE):
-            name = re.sub(pattern, ' ', name, flags=re.IGNORECASE)
-
-    return name.strip()
+    return name
 
 
+# ============================================================
+# 法律后缀
+# ============================================================
 def remove_legal_suffixes(name: str) -> str:
     """
-    去除公司法律后缀（多次迭代确保清理干净）
-
-    Args:
-        name: 公司名称
-
-    Returns:
-        去除法律后缀后的名称
+    去除法律后缀，迭代3轮确保清理干净。
+    注意：不使用全局 & 替换，仅在法律后缀模式中处理 &。
     """
-    original = name
-    # 多次迭代确保所有后缀都被去除
     for _ in range(3):
-        for suffix in LEGAL_SUFFIXES:
-            name = re.sub(suffix, '', name, flags=re.IGNORECASE)
-            name = name.strip()
+        original = name
+        for suffix in LEGAL_SUFFIXES_ORDERED:
+            # 用 \b 边界匹配，从名称中移除
+            pattern = rf'\s*\b{suffix}\b\.?'
+            name = re.sub(pattern, '', name, flags=re.IGNORECASE).strip()
+        # 清理法律后缀残留的 & 和 Co 连接
+        name = re.sub(r'\s*&\s*$', '', name).strip()  # 结尾的孤立 &
+        name = re.sub(r'\s*,\s*$', '', name).strip()  # 结尾的孤立 ,
         if name == original:
             break
-        original = name
-
     return name
 
 
+# ============================================================
+# 冗余词
+# ============================================================
 def remove_redundant_words(name: str) -> str:
     """
-    去除冗余描述词
-
-    注意：这个函数比较保守，优先去除明确的行业词，
-    避免把短名称的完整名称错误处理。
-
-    Args:
-        name: 公司名称
-
-    Returns:
-        去除冗余词后的名称
+    去除冗余描述词。
+    保护规则：处理后至少保留 1 个词，否则回退。
     """
-    words = name.split()
-    word_count = len(words)
+    original = name
+    words_before = len(name.split())
 
-    # 对于2个词的情况，只去除明确的冗余后缀词
-    if word_count <= 2:
-        # 只去除作为最后一个词的冗余词
-        for word_pattern in REDUNDANT_WORDS:
-            # 检查是否以冗余词结尾
-            pattern = rf'\s+{word_pattern}$'
-            if re.search(pattern, name, re.IGNORECASE):
-                name = re.sub(pattern, '', name, flags=re.IGNORECASE)
-                name = name.strip()
-                break
-    else:
-        # 3个词以上，去除所有冗余词
-        for word_pattern in REDUNDANT_WORDS:
-            name = re.sub(word_pattern, '', name, flags=re.IGNORECASE)
-            name = name.strip()
+    for word in REDUNDANT_WORDS:
+        pattern = rf'\b{word}\b'
+        candidate = re.sub(pattern, '', name, flags=re.IGNORECASE).strip()
+        candidate = ' '.join(candidate.split())  # 合并多余空格
+        # 保护：不能清成空
+        if candidate and len(candidate) >= 2:
+            name = candidate
+
+    # 最终保护：如果结果为空或太短，回退
+    if not name or len(name.strip()) < 2:
+        return original
 
     return name
 
 
+# ============================================================
+# 特殊字符清理
+# ============================================================
 def clean_special_chars(name: str) -> str:
     """
-    清理特殊字符和多余空格
-
-    Args:
-        name: 公司名称
-
-    Returns:
-        清理后的名称
+    清理特殊字符和多余空格。
+    注意：保留品牌中的 & 符号（如 Bang & Olufsen）。
     """
-    # 去除括号及其内容
-    name = re.sub(r'\([^)]*\)', '', name)
     # 去除引号
     name = name.replace('"', '').replace("'", '').replace('`', '')
-    # 去除多余的点号（单独的点或无意义的点号）
-    name = re.sub(r'\s+\.\s*$', '', name)  # 去除结尾的点
-    name = re.sub(r'\s+\.\s+', ' ', name)   # 去除中间单独的点
-
-    # 去除 & 符号及其周围空格
-    name = re.sub(r'\s*&\s*$', '', name)   # 去除结尾的 &
-    name = re.sub(r'\s*&\s*', ' ', name)    # 去除中间的 &，替换为空格
-
-    # 去除多余空格
+    # 去除反斜杠
+    name = name.replace('\\', '')
+    # 去除结尾的孤立标点
+    name = re.sub(r'[\s.,;:]+$', '', name)
+    # 去除开头的标点（保留 - 和数字开头）
+    name = re.sub(r'^[.,;:_+|/\\]+', '', name)
+    # 合并多余空格
     name = ' '.join(name.split())
-    # 去除首尾的特殊字符（但保留开头的 -，如 -Q）
-    while name and name[0] in '.,;:_+|/\\':
-        name = name[1:]
-    while name and name[-1] in '.,;:-_+|/\\':
-        name = name[:-1]
-
     return name.strip()
 
 
-# 后缀残留检测词（用于发现可能未被正确清理的名称）
-SUFFIX_RESIDUE_PATTERNS = [
-    r'\bLLC\b',
-    r'\bInc\b',
-    r'\bLtd\b',
-    r'\bLTD\b',
-    r'\bCo\b',
-    r'\bCorp\b',
-    r'\bGmbH\b',
-    r'\blimited\b',
-    r'\bCompany\b',
-    r'\bCorporation\b',
-    r'\bIncorporated\b',
-    r'\bSA\b',
-    r'\bAG\b',
-    r'\bSE\b',
-    r'\bSP\b',
-]
-
-
-def check_suffix_residue(name: str) -> list:
+# ============================================================
+# 主处理
+# ============================================================
+def process_entry(entry_id: str, original_name: str) -> Tuple[str, str, Optional[str], str]:
     """
-    检查名称中是否可能残留后缀
-
-    Args:
-        name: 处理后的公司名称
+    处理单条公司名称。
 
     Returns:
-        匹配到的残留模式列表
+        (id, cleaned_name, extracted_abbr, original_name)
     """
-    residues = []
-    for pattern in SUFFIX_RESIDUE_PATTERNS:
-        if re.search(pattern, name, re.IGNORECASE):
-            residues.append(pattern)
-    return residues
+    if not original_name.strip():
+        return entry_id, '', None, original_name
 
+    name = original_name
 
-def process_line(line: str) -> Tuple[str, str, str]:
-    """
-    处理一行公司名称
+    # 1. 提取括号缩写 + 去除括号内容
+    name, abbr = extract_parenthetical_abbr(name)
 
-    Args:
-        line: 输入行
+    # 2. 去除地点前缀
+    name = remove_location_prefix(name)
 
-    Returns:
-        (编号, 处理后的名称, 原始名称) 元组
-    """
-    number, original_name = extract_number_and_name(line)
-
-    if not original_name:
-        return number, '', original_name
-
-    # 按顺序处理
-    name = remove_location_prefix(original_name)
+    # 3. 去除法律后缀
     name = remove_legal_suffixes(name)
+
+    # 4. 去除冗余描述词
     name = remove_redundant_words(name)
+
+    # 5. 清理特殊字符
     name = clean_special_chars(name)
 
-    return number, name, original_name
+    # 6. 最终保护：如果清空了，回退到原名
+    if not name or len(name.strip()) < 1:
+        name = original_name.strip()
+
+    return entry_id, name, abbr, original_name
 
 
 def main():
-    """主函数"""
-    input_lines = []
+    """主函数：读取输入，处理，输出 TSV"""
+    raw_lines = []
 
-    # 从标准输入读取
-    for line in sys.stdin:
-        line = line.strip()
-        if line:
-            input_lines.append(line)
+    # 优先检查文件参数，再检查 stdin
+    if len(sys.argv) > 1:
+        with open(sys.argv[1], 'r', encoding='utf-8') as f:
+            raw_lines = f.readlines()
+    elif not sys.stdin.isatty():
+        raw_lines = sys.stdin.readlines()
+    else:
+        print("用法: python3 preprocess.py input.txt", file=sys.stderr)
+        print("  或: python3 preprocess.py < input.txt", file=sys.stderr)
+        sys.exit(1)
 
-    # 如果没有输入，打印使用说明
-    if not input_lines:
-        print(__doc__)
-        print("\n使用方法:")
-        print('  echo "2208 Aclara Technologies LLC" | python3 preprocess.py')
-        print('  cat input.txt | python3 preprocess.py')
-        print('  python3 preprocess.py < input.txt')
-        return
+    entries = parse_lines(raw_lines)
 
-    # 处理每一行
-    results = []
-    residue_warnings = []  # 后缀残留警告
+    # 输出 TSV 头
+    print("ID\tCleaned\tExtractedAbbr\tOriginal")
 
-    for line in input_lines:
-        number, name, original = process_line(line)
-        if name:  # 只输出非空名称
-            # 检查后缀残留
-            residues = check_suffix_residue(name)
-            if residues:
-                residue_warnings.append({
-                    'number': number,
-                    'name': name,
-                    'original': original,
-                    'residues': residues
-                })
-            results.append((number, name, original))
+    for entry_id, original_name in entries:
+        eid, cleaned, abbr, orig = process_entry(entry_id, original_name)
+        abbr_str = abbr if abbr else ''
+        print(f"{eid}\t{cleaned}\t{abbr_str}\t{orig}")
 
-    # 输出格式1：包含原始内容（方便核对）
-    print("=== 第一次输出（含原始内容，方便核对）===")
-    print("格式：数字|处理后|原始")
-    print("---")
-    for number, name, original in results:
-        print(f"{number}|{name}|{original}")
-
-    print("\n=== 第二次输出（处理后）===")
-    print("格式：数字|处理后")
-    print("---")
-    for number, name, _ in results:
-        print(f"{number}|{name}")
-
-    # 输出后缀残留警告（如果有）
-    if residue_warnings:
-        print("\n=== 后缀残留警告（可能需要手动检查）===")
-        print(f"发现 {len(residue_warnings)} 条可能残留后缀的记录:")
-        print("---")
-        for w in residue_warnings:
-            residue_str = ", ".join(w['residues'])
-            print(f"[{w['number']}] {w['name']}")
-            print(f"        原始: {w['original']}")
-            print(f"        检测到: {residue_str}")
-            print()
+    # 统计到 stderr
+    total = len(entries)
+    with_abbr = sum(1 for _, n in entries
+                    if extract_parenthetical_abbr(n)[1] is not None)
+    print(f"\n处理完成: {total} 条, 其中 {with_abbr} 条提取到括号缩写",
+          file=sys.stderr)
 
 
 if __name__ == "__main__":

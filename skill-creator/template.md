@@ -82,6 +82,23 @@ description: |
 
 ---
 
+## Persistent Memory
+
+<!-- 删除此段落如果该 Skill 不需要持续性记忆（一次性任务型 Skill） -->
+<!-- 保留此段落如果该 Skill 会被反复使用、需要积累学习经验 -->
+
+Read `data/memory.md` before each execution for context from previous runs.
+
+After completing each execution:
+1. Append one-line summary to Execution History (keep last 20 entries)
+2. Update User Preferences if new patterns discovered
+3. Record any new issues or workarounds
+4. Add effective patterns to Learned Patterns
+
+When Execution History exceeds 20 entries, summarize oldest 10 into Learned Patterns and remove them.
+
+---
+
 ## 进阶阅读
 
 - **详细 Frontmatter 配置**: 见 [frontmatter.md](references/frontmatter.md)

@@ -3,15 +3,15 @@
 # 文件说明书 (File Manual)
 # ============================================================
 # 核心功能 (Core Function)
-# 管理 ~/.secrets/vault.yaml 的凭证数据：初始化、列出、查看（脱敏）、设置、删除。
+# 管理 secrets-vault/data/vault.yaml 的凭证数据：初始化、列出、查看（脱敏）、设置、删除。
 #
 # 输入 (Input)
 # - 命令行参数: action + 相关参数
-# - 数据文件: ~/.secrets/vault.yaml
+# - 数据文件: ~/.claude/skills/secrets-vault/data/vault.yaml
 #
 # 输出 (Output)
 # - stdout: 操作结果（人类可读格式）
-# - 文件写入: ~/.secrets/vault.yaml 的增删改
+# - 文件写入: vault.yaml 的增删改
 #
 # 定位 (Position)
 # secrets-vault skill 的管理入口，由用户或 Agent 执行凭证管理操作。
@@ -29,9 +29,12 @@ import os
 import sys
 from pathlib import Path
 
-SECRETS_DIR = Path.home() / ".secrets"
-VAULT_PATH = SECRETS_DIR / "vault.yaml"
-GITIGNORE_PATH = SECRETS_DIR / ".gitignore"
+# 路径相对于脚本位置
+SCRIPT_DIR = Path(__file__).parent
+SKILL_DIR = SCRIPT_DIR.parent
+DATA_DIR = SKILL_DIR / "data"
+VAULT_PATH = DATA_DIR / "vault.yaml"
+VAULT_EXAMPLE_PATH = SKILL_DIR / "vault.yaml.example"
 
 VAULT_TEMPLATE = """\
 # ============================================================
@@ -40,42 +43,60 @@ VAULT_TEMPLATE = """\
 # 顶层 key = 服务命名空间（自由定义，随用随加）
 # 其他 skill 通过 get_secret.py <namespace> [key] 读取
 #
-# 示例命名空间:
-#   wechat_mp    - 微信公众号凭证
-#   aliyun_oss   - 阿里云 OSS 配置
-#   personal     - 个人信息
-#   openai       - OpenAI API
+# 命名空间命名规范:
 #   github       - GitHub Token
+#   vercel       - Vercel API Token
+#   supabase     - Supabase 凭证
+#   x_oauth      - X/Twitter OAuth
+#   wechat_mp    - 微信公众号凭证
+#   openai       - OpenAI API
+#   personal     - 个人信息
 # ============================================================
 
-# ---- 以下为示例，请替换为真实信息 ----
+# ---- GitHub (必需) ----
+# 用于创建仓库、推送代码、关联 Vercel
+github:
+  token: "ghp_your_github_token"
+  username: "your_username"
+  default_visibility: "private"
 
+# ---- Vercel (前端部署) ----
+# 用于关联 GitHub、自动部署
+vercel:
+  token: "your_vercel_token"
+  team_id: "team_xxxx"  # 可选
+
+# ---- Supabase (后端部署) ----
+# 用于数据库、认证、存储
+supabase:
+  project_id: "your_project_id"
+  url: "https://xxxx.supabase.co"
+  anon_key: "eyJhbGci..."
+  service_role_key: "eyJhbGci..."
+  database_url: "postgresql://..."
+
+# ---- X/Twitter OAuth ----
+# 用于 X 登录集成
+x_oauth:
+  client_id: "your_client_id"
+  client_secret: "your_client_secret"
+  callback_url: "https://your-app.com/api/auth/callback/x"
+
+# ---- 微信公众号 (可选) ----
 # wechat_mp:
 #   app_id: "your_app_id"
 #   app_secret: "your_app_secret"
 
-# aliyun_oss:
-#   access_key_id: "your_key_id"
-#   access_key_secret: "your_key_secret"
-#   bucket: "your-bucket"
-#   endpoint: "oss-cn-hangzhou.aliyuncs.com"
-
+# ---- 个人信息 (可选) ----
 # personal:
 #   name: "你的名字"
 #   email: "you@example.com"
-
-# openai:
-#   api_key: "sk-..."
-
-# github:
-#   token: "ghp_..."
 """
 
 
 def ensure_yaml():
     try:
         import yaml  # noqa: F401
-
         return True
     except ImportError:
         print("Error: pyyaml not installed. Run: pip install pyyaml", file=sys.stderr)
@@ -86,7 +107,6 @@ def load_vault():
     if not VAULT_PATH.exists():
         return {}
     import yaml
-
     with open(VAULT_PATH, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
     return data if data else {}
@@ -94,7 +114,6 @@ def load_vault():
 
 def save_vault(data):
     import yaml
-
     with open(VAULT_PATH, "w", encoding="utf-8") as f:
         yaml.dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
 
@@ -114,20 +133,16 @@ def cmd_init():
         print("Use 'set' command to add entries.")
         return
 
-    SECRETS_DIR.mkdir(parents=True, exist_ok=True)
-    os.chmod(str(SECRETS_DIR), 0o700)
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    os.chmod(str(DATA_DIR), 0o700)
 
     with open(VAULT_PATH, "w", encoding="utf-8") as f:
         f.write(VAULT_TEMPLATE)
     os.chmod(str(VAULT_PATH), 0o600)
 
-    with open(GITIGNORE_PATH, "w", encoding="utf-8") as f:
-        f.write("# Prevent any secrets from being committed\n*\n!.gitignore\n")
-
     print(f"✅ Vault initialized at {VAULT_PATH}")
     print(f"   Directory permissions: 700 (owner only)")
     print(f"   File permissions: 600 (owner read/write)")
-    print(f"   .gitignore created to prevent accidental commits")
     print(f"\nNext: Edit {VAULT_PATH} to add your credentials,")
     print(f"  or use: manage_secrets.py set <namespace> <key> <value>")
 
@@ -221,7 +236,7 @@ def main():
     usage = (
         "Usage: manage_secrets.py <action> [args]\n\n"
         "Actions:\n"
-        "  init                          Initialize vault (~/.secrets/vault.yaml)\n"
+        "  init                          Initialize vault (data/vault.yaml)\n"
         "  list                          List all namespaces (masked values)\n"
         "  get <namespace>               Show namespace contents (masked)\n"
         "  set <namespace> <key> <value> Set a key-value pair\n"

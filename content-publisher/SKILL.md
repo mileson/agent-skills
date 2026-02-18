@@ -56,12 +56,41 @@ $PUBLISHER status --platform wechat --workspace /path/to/workspace --publish-id 
 
 ### Agent 调用流程
 
-content-creator 阶段6完成后，Agent 引导用户：
+content-creator 阶段6完成后，Agent 按以下步骤引导：
 
+**Step 1：封面图预检** ⭐
+```
+检查 Output/{platform}/metadata.yaml 的 medias.cover.path：
+├─ 路径存在且文件有效 → 继续 Step 2
+└─ 路径不存在或文件缺失 → 执行封面图处理：
+   
+   1. 检查 Materials/Medias/images/cover.{jpg|png|...}
+      ├─ 存在 → 复制到 Output/{platform}/images/ 并更新 metadata
+      └─ 不存在 → 询问用户：
+         
+         "📷 检测到未提供封面图，是否需要 AI 生成？"
+         - 是 → 询问风格/内容描述 → 调用 generate_cover.py
+         - 否 → 从已有图片选取最合适的
+   
+   2. 更新 metadata.yaml 的 medias.cover.path
+```
+
+**Step 2：确认发布**
 1. 询问用户是否需要发布
 2. 用户确认后，执行 `publisher.py publish --platform wechat --workspace ...`
+
+**Step 3：结果反馈**
 3. 默认创建草稿（安全），告知用户 draft_id
-4. 用户确认后，可选执行发布
+4. 用户确认后，可选执行正式发布
+
+**⚠️ AI 封面图生成规则**：
+- **默认使用 `--article` 模式**：传入文章路径，内置「科技视觉绘图专家」提示词自动生成
+  - 风格：暗黑赛博朋克 / 3D 超写实渲染，禁止图片中出现文字
+  - 用户有特殊风格需求时才使用 `--prompt` 模式
+- 封面图统一保存到 `Materials/Medias/images/cover.jpg`（源文件）
+- 再复制到 `Output/{platform}/images/cover.jpg`（发布用）
+- 依赖 `secrets-vault` 的 `apimart_image` 命名空间
+- 脚本路径：`~/.cursor/skills/content-creator/scripts/generate_cover.py`
 
 ## 微信公众号发布流程
 

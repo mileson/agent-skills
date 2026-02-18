@@ -219,9 +219,8 @@ class MarkdownToWeChatConverter:
         if formula_count > 0:
             print(f"📐 已转换 {formula_count} 个数学公式为图片")
 
-        # 2. 预处理：转换任务列表语法和添加标题编号
+        # 2. 预处理：转换任务列表语法（标题编号由 renderer 自动生成）
         markdown_text = self._preprocess_task_lists(markdown_text)
-        markdown_text = self._add_heading_numbers(markdown_text)
 
         # 3. 生成文章头部
         article_header = self._generate_article_header(word_count)

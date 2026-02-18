@@ -19,6 +19,11 @@ class WeChatRenderer(mistune.HTMLRenderer):
         self._custom_footnotes: List[Dict[str, str]] = []
         self.heading_ids = set()
         
+        # 标题自动编号计数器
+        self.h2_counter = 0
+        self.h3_counter = 0
+        self.h4_counter = 0
+        
         # 颜色快捷访问
         self.c = theme_config['colors']
         # 排版快捷访问
@@ -27,18 +32,44 @@ class WeChatRenderer(mistune.HTMLRenderer):
         self.s = theme_config['spacing']
     
     def heading(self, text: str, level: int, **attrs) -> str:
-        """渲染标题，支持自动编号和渐变条装饰"""
-        import re
+        """渲染标题，支持自动编号和渐变条装饰
+        
+        自动编号逻辑：
+        - H1：不编号（标题页）
+        - H2：递增编号 1, 2, 3...
+        - H3：层级编号 1.1, 1.2, 2.1...
+        - H4：层级编号 1.1.1, 1.1.2, 2.1.1...
+        - 编号是新生成的，不从原标题内容中提取
+        - 原标题文字完整保留
+        """
         font_size_key = f'font_size_h{min(level, 4)}'
         font_size = self.t.get(font_size_key, self.t['font_size_base'])
         
-        # 提取编号和标题文字
-        number_match = re.match(r'^([\d\.]+)\s+(.+)$', text)
-        if number_match:
-            number = number_match.group(1)
-            title_text = number_match.group(2)
-            
-            # 根据级别设置编号字号和斜体效果
+        # 自动生成编号（不从标题内容中提取，标题文字完整保留）
+        auto_number = None
+        if level == 2:
+            self.h2_counter += 1
+            self.h3_counter = 0  # 新 H2 时重置 H3/H4 计数
+            self.h4_counter = 0
+            auto_number = f"{self.h2_counter}"
+        elif level == 3:
+            self.h3_counter += 1
+            self.h4_counter = 0  # 新 H3 时重置 H4 计数
+            if self.h2_counter > 0:
+                auto_number = f"{self.h2_counter}.{self.h3_counter}"
+            else:
+                auto_number = f"{self.h3_counter}"
+        elif level == 4:
+            self.h4_counter += 1
+            if self.h2_counter > 0 and self.h3_counter > 0:
+                auto_number = f"{self.h2_counter}.{self.h3_counter}.{self.h4_counter}"
+            elif self.h3_counter > 0:
+                auto_number = f"{self.h3_counter}.{self.h4_counter}"
+            else:
+                auto_number = f"{self.h4_counter}"
+        
+        # 构建带样式的序号 + 原始标题文字
+        if auto_number:
             if level == 2:
                 # H2 序号增大 50%，添加斜体
                 number_font_size = int(font_size * 1.5)
@@ -49,14 +80,13 @@ class WeChatRenderer(mistune.HTMLRenderer):
                     f"font-style: italic; "
                 )
             else:
-                # 其他级别序号和标题字号一致，添加斜体
+                # H3+ 序号和标题字号一致，添加斜体
                 number_style = (
                     f"color: {self.c.get('heading_number_color', self.c['primary'])}; "
                     f"margin-right: 8px; "
                     f"font-style: italic; "
                 )
-            
-            styled_text = f'<span style="{number_style}">{number}</span>{title_text}'
+            styled_text = f'<span style="{number_style}">{auto_number}</span>{text}'
         else:
             styled_text = text
         
@@ -65,11 +95,7 @@ class WeChatRenderer(mistune.HTMLRenderer):
         if level == 1:
             # H1：居中显示，蓝色斜杠装饰，不显示序号
             # 使用 <p> + <span> 而非 <h1>，确保微信兼容
-            # 移除序号，只保留标题文字
-            if number_match:
-                title_only = title_text
-            else:
-                title_only = text
+            title_only = text
             
             # 蓝色斜杠颜色
             slash_color = self.c.get('primary', '#1E6FBA')
