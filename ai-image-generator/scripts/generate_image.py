@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import time
+import base64
 import argparse
 import requests
 import subprocess
@@ -34,7 +35,24 @@ def download_image(url, save_path):
         f.write(response.content)
     print(f"✅ Image successfully saved to {save_path}")
 
-def submit_task_and_wait(prompt, style_suffix, size, resolution, n, output_path, headers, max_retries=30):
+def encode_image_to_base64(image_path):
+    """将本地图片转换为带有 Data URI 前缀的 base64 字符串"""
+    if not os.path.exists(image_path):
+        raise FileNotFoundError(f"Reference image not found: {image_path}")
+        
+    ext = os.path.splitext(image_path)[1].lower()
+    mime_type = "image/jpeg"
+    if ext == ".png":
+        mime_type = "image/png"
+    elif ext in [".webp"]:
+        mime_type = "image/webp"
+        
+    with open(image_path, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+        
+    return f"data:{mime_type};base64,{encoded_string}"
+
+def submit_task_and_wait(prompt, style_suffix, size, resolution, n, output_path, reference_image, headers, max_retries=30):
     final_prompt = prompt
     if style_suffix:
         final_prompt = f"{prompt}, {style_suffix}"
@@ -49,6 +67,17 @@ def submit_task_and_wait(prompt, style_suffix, size, resolution, n, output_path,
         "size": size,
         "resolution": resolution
     }
+    
+    if reference_image:
+        try:
+            if reference_image.startswith("http://") or reference_image.startswith("https://"):
+                data["image_urls"] = [reference_image]
+            else:
+                base64_img = encode_image_to_base64(reference_image)
+                data["image_urls"] = [base64_img]
+            print(f"Using reference image for {output_path}")
+        except Exception as e:
+            return {"success": False, "error": f"Failed to process reference image: {e}", "output": output_path}
 
     try:
         response = requests.post(url, headers=headers, json=data)
@@ -119,6 +148,7 @@ def main():
     parser.add_argument("--output", type=str, nargs="+", required=True, help="图片的本地保存路径 (需与 prompt 数量一致)")
     parser.add_argument("--size", type=str, default="16:9", help="图片比例, 如 16:9, 1:1, 4:3 等")
     parser.add_argument("--resolution", type=str, default="1K", help="图片分辨率, 如 1K, 2K")
+    parser.add_argument("--reference_image", type=str, nargs="*", help="参考图路径或URL (可选，用于图生图)。如果提供，数量必须为 1 或与 prompt 数量一致")
     
     parser.add_argument("--n", type=int, default=1, help="每个提示词生成图像的数量，默认为 1")
     
@@ -127,6 +157,16 @@ def main():
     if len(args.prompt) != len(args.output):
         print("Error: The number of --prompt arguments must match the number of --output arguments.")
         sys.exit(1)
+        
+    ref_images = [None] * len(args.prompt)
+    if args.reference_image:
+        if len(args.reference_image) == 1:
+            ref_images = [args.reference_image[0]] * len(args.prompt)
+        elif len(args.reference_image) == len(args.prompt):
+            ref_images = args.reference_image
+        else:
+            print("Error: --reference_image must have exactly 1 item or match the number of --prompt arguments.")
+            sys.exit(1)
 
     style_suffix = ""
     styles_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates", "styles.yaml")
@@ -182,9 +222,9 @@ def main():
         future_to_task = {
             executor.submit(
                 submit_task_and_wait, 
-                prompt, style_suffix, args.size, args.resolution, args.n, output_path, headers
+                prompt, style_suffix, args.size, args.resolution, args.n, output_path, ref_img, headers
             ): (prompt, output_path)
-            for prompt, output_path in zip(args.prompt, args.output)
+            for prompt, output_path, ref_img in zip(args.prompt, args.output, ref_images)
         }
         
         for future in as_completed(future_to_task):
