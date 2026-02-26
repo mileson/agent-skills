@@ -1,0 +1,40 @@
+styles:
+  ppt_graphic:
+    name: "PPT 扁平矢量配图 (PPT Flat Graphic)"
+    description: "适合企业汇报、商业演讲、幻灯片配图，专业且干净。"
+    template: "{prompt}, modern flat vector illustration, corporate memphis style, clean background, minimal details, professional color palette, highly conceptual, suitable for presentation slides, 8k resolution"
+  
+  3d_isometric:
+    name: "3D等距图解 (3D Isometric)"
+    description: "适合技术架构、流程步骤、系统关系、模块拆解。"
+    template: "{prompt}, 3D isometric illustration, clay render style, soft studio lighting, clean background, miniature diorama, high resolution, detailed"
+  
+  3d_icon:
+    name: "3D 立体图标 (3D UI Icon)"
+    description: "适合制作 App、网页的立体图标、高质感按钮或物件。"
+    template: "{prompt}, 3D app icon, high quality glossy material, soft studio lighting, clean white background, center composition, detailed 3D render, octane render, trending on dribbble"
+
+  chat_sticker:
+    name: "聊天表情包 (Chat Sticker)"
+    description: "适合微信、Slack等聊天工具使用的生动活泼表情包角色图。"
+    template: "{prompt}, cute chibi character, line art style, expressive emotion, white background, thick outlines, flat colors, kawaii style, sticker design"
+  
+  photorealistic:
+    name: "写实摄影 (Photorealistic)"
+    description: "适合需要极度真实的场景，如产品展示、写实风景、人物照片等。"
+    template: "{prompt}, highly detailed photography, hyperrealistic, 8k resolution, cinematic lighting, shot on 35mm lens, sharp focus, masterpiece"
+  
+  anime_style:
+    name: "动漫风格 (Anime Style)"
+    description: "适合二次元插画、动漫角色设计、唯美场景。"
+    template: "{prompt}, highly detailed anime style illustration, Studio Ghibli style, beautiful lighting, vibrant colors, masterpiece, 8k"
+
+  minimalist_ui:
+    name: "极简 UI 概念 (Minimalist UI Mockup)"
+    description: "适合功能教程、产品界面说明。"
+    template: "{prompt}, abstract minimalist UI mockup, clean wireframe style, floating elements, glassmorphism, soft shadows, tech-focused, elegant design"
+  
+  metaphorical_scene:
+    name: "场景隐喻 (Metaphorical Scene)"
+    description: "适合职场故事、心路历程、对比场景。"
+    template: "{prompt}, modern editorial illustration, symbolic representation, cinematic lighting, focal point on the subject, expressive, masterpiece"
