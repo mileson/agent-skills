@@ -35,20 +35,19 @@ description: |
 **命令模板**：
 ```bash
 python3 ~/.cursor/skills/ai-image-generator/scripts/generate_image.py \
-  --prompt "A cute fluffy cat showing an OK gesture, big shiny eyes, wearing a red scarf" \
+  --prompt "A cute fluffy cat showing an OK gesture" "A dog smiling" \
   --style "chat_sticker" \
-  --output "/完整的绝对路径/或/相对于当前工作区的路径/cat_ok.png" \
+  --output "/绝对路径/cat_ok.png" "/绝对路径/dog_smile.png" \
   --size "1:1" \
-  --n 2 \
   --resolution "1K"
 ```
 
 **参数说明：**
-- `--prompt`: 提炼后的纯画面英文描述（不需要带具体的风格描述词汇，脚本会自动结合模板加上）。
+- `--prompt`: 提炼后的纯画面英文描述。**支持传入多个提示词（用空格分隔的多个字符串）以实现并发生成**。
 - `--style`: `styles.yaml` 中的键名（例如 `chat_sticker`）。
-- `--output`: **[极其重要]** 图片必须保存的确切本地路径，确保后缀为图片格式。如果 `--n` 大于 1，脚本会自动在文件名后追加 `_1`, `_2` 等后缀。
+- `--output`: **[极其重要]** 图片必须保存的确切本地路径。**注意：传入的路径数量必须与 `--prompt` 数量完全一致！** 如果 `--n` 大于 1，脚本会自动在文件名后追加 `_1`, `_2` 等后缀。
 - `--size`: 比例，如 `16:9`, `1:1`, `4:3`。默认推荐 `16:9`，但像表情包/头像推荐 `1:1`。
-- `--n`: 生成图片的数量，默认为 1。如果用户需要同时生成多张图，可以指定此参数。
+- `--n`: 每个提示词生成图片的数量，默认为 1。如果用户需要针对同一个提示词同时生成多张图，可以指定此参数。
 - `--resolution`: 分辨率，默认为 `1K`，也可选 `2K`。
 
 ### 4. 结果交付 (Delivery)
