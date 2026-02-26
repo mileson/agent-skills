@@ -9,6 +9,42 @@ import requests
 import subprocess
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+CACHE_FILE = os.path.join(os.path.dirname(__file__), ".task_cache.json")
+
+def load_cache():
+    if os.path.exists(CACHE_FILE):
+        try:
+            with open(CACHE_FILE, "r") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+def save_cache(cache):
+    with open(CACHE_FILE, "w") as f:
+        json.dump(cache, f, indent=2)
+
+def get_task_for_output(output_path):
+    cache = load_cache()
+    abs_path = os.path.abspath(output_path)
+    task_info = cache.get(abs_path)
+    if task_info and task_info.get("status") in ["pending", "submitted", "processing"]:
+        return task_info.get("task_id")
+    return None
+
+def set_task_for_output(output_path, task_id, status="pending"):
+    cache = load_cache()
+    abs_path = os.path.abspath(output_path)
+    cache[abs_path] = {"task_id": task_id, "status": status, "timestamp": time.time()}
+    save_cache(cache)
+
+def clear_task_for_output(output_path):
+    cache = load_cache()
+    abs_path = os.path.abspath(output_path)
+    if abs_path in cache:
+        del cache[abs_path]
+        save_cache(cache)
+
 def get_secret(namespace: str, key: str = None):
     """从 secrets-vault 获取凭证"""
     script = os.path.expanduser("~/.cursor/skills/secrets-vault/scripts/get_secret.py")
@@ -52,56 +88,63 @@ def encode_image_to_base64(image_path):
         
     return f"data:{mime_type};base64,{encoded_string}"
 
-def submit_task_and_wait(prompt, style_suffix, size, resolution, n, output_path, reference_image, headers, max_retries=30):
+def submit_task_and_wait(prompt, style_suffix, size, resolution, n, output_path, reference_image, headers, force=False, max_retries=60):
     final_prompt = prompt
     if style_suffix:
         final_prompt = f"{prompt}, {style_suffix}"
         
-    print(f"Final Prompt for {output_path}: {final_prompt}")
-
-    url = "https://api.apimart.ai/v1/images/generations"
-    data = {
-        "model": "gemini-3-pro-image-preview",
-        "prompt": final_prompt,
-        "n": n,
-        "size": size,
-        "resolution": resolution
-    }
-    
-    if reference_image:
-        try:
-            if reference_image.startswith("http://") or reference_image.startswith("https://"):
-                data["image_urls"] = [reference_image]
-            else:
-                base64_img = encode_image_to_base64(reference_image)
-                data["image_urls"] = [base64_img]
-            print(f"Using reference image for {output_path}")
-        except Exception as e:
-            return {"success": False, "error": f"Failed to process reference image: {e}", "output": output_path}
-
-    try:
-        response = requests.post(url, headers=headers, json=data)
-    except Exception as e:
-        return {"success": False, "error": f"Network error during API request: {e}", "output": output_path}
-        
-    if response.status_code != 200:
-        return {"success": False, "error": f"Error {response.status_code}: {response.text}", "output": output_path}
-        
-    res_json = response.json()
     task_id = None
-    if "data" in res_json and len(res_json["data"]) > 0:
-        task_id = res_json["data"][0].get("task_id")
+    if not force:
+        task_id = get_task_for_output(output_path)
         
-    if not task_id:
-        return {"success": False, "error": f"Failed to get task_id. Response: {res_json}", "output": output_path}
+    if task_id:
+        print(f"Found existing task {task_id} for {output_path} in cache. Resuming polling...")
+    else:
+        print(f"Final Prompt for {output_path}: {final_prompt}")
+        url = "https://api.apimart.ai/v1/images/generations"
+        data = {
+            "model": "gemini-3-pro-image-preview",
+            "prompt": final_prompt,
+            "n": n,
+            "size": size,
+            "resolution": resolution
+        }
         
-    print(f"Task ID {task_id} submitted successfully for {output_path}. Polling status...")
+        if reference_image:
+            try:
+                if reference_image.startswith("http://") or reference_image.startswith("https://"):
+                    data["image_urls"] = [reference_image]
+                else:
+                    base64_img = encode_image_to_base64(reference_image)
+                    data["image_urls"] = [base64_img]
+                print(f"Using reference image for {output_path}")
+            except Exception as e:
+                return {"success": False, "error": f"Failed to process reference image: {e}", "output": output_path, "task_id": None}
+
+        try:
+            response = requests.post(url, headers=headers, json=data)
+        except Exception as e:
+            return {"success": False, "error": f"Network error during API request: {e}", "output": output_path, "task_id": None}
+            
+        if response.status_code != 200:
+            return {"success": False, "error": f"Error {response.status_code}: {response.text}", "output": output_path, "task_id": None}
+            
+        res_json = response.json()
+        if "data" in res_json and len(res_json["data"]) > 0:
+            task_id = res_json["data"][0].get("task_id")
+            
+        if not task_id:
+            return {"success": False, "error": f"Failed to get task_id. Response: {res_json}", "output": output_path, "task_id": None}
+            
+        print(f"Task ID {task_id} submitted successfully for {output_path}. Caching and polling...")
+        set_task_for_output(output_path, task_id, "submitted")
+
     status_url = f"https://api.apimart.ai/v1/tasks/{task_id}"
     
     for i in range(max_retries):
         time.sleep(3)
         try:
-            status_res = requests.get(status_url, headers=headers)
+            status_res = requests.get(status_url, headers=headers, timeout=10)
             if status_res.status_code == 200:
                 status_data = status_res.json().get("data", {})
                 status = status_data.get("status")
@@ -124,14 +167,18 @@ def submit_task_and_wait(prompt, style_suffix, size, resolution, n, output_path,
                                 saved_files.append(current_output)
                         
                         if saved_files:
-                            return {"success": True, "files": saved_files, "output": output_path}
+                            clear_task_for_output(output_path)
+                            return {"success": True, "files": saved_files, "output": output_path, "task_id": task_id}
                         else:
-                            return {"success": False, "error": "Task completed but no valid image URLs found.", "output": output_path}
+                            clear_task_for_output(output_path)
+                            return {"success": False, "error": "Task completed but no valid image URLs found.", "output": output_path, "task_id": task_id}
                     else:
-                        return {"success": False, "error": "Task completed but no images returned.", "output": output_path}
+                        clear_task_for_output(output_path)
+                        return {"success": False, "error": "Task completed but no images returned.", "output": output_path, "task_id": task_id}
                 elif status == "failed":
+                    clear_task_for_output(output_path)
                     error_msg = status_data.get("error", {}).get("message", "Unknown error")
-                    return {"success": False, "error": f"Task failed: {error_msg}", "output": output_path}
+                    return {"success": False, "error": f"Task failed: {error_msg}", "output": output_path, "task_id": task_id}
                 else:
                     print(f"Status check {i+1}/{max_retries} for {task_id}: {status} ...")
             else:
@@ -139,7 +186,7 @@ def submit_task_and_wait(prompt, style_suffix, size, resolution, n, output_path,
         except Exception as e:
             print(f"Exception during status check for {task_id}: {e}")
             
-    return {"success": False, "error": "Timeout waiting for image generation.", "output": output_path}
+    return {"success": False, "error": f"Timeout waiting for image generation. Task ID: {task_id}. Please run the command again to resume polling.", "output": output_path, "task_id": task_id, "timeout": True}
 
 def main():
     parser = argparse.ArgumentParser(description="Generate image using APIMart API")
@@ -149,8 +196,8 @@ def main():
     parser.add_argument("--size", type=str, default="16:9", help="图片比例, 如 16:9, 1:1, 4:3 等")
     parser.add_argument("--resolution", type=str, default="1K", help="图片分辨率, 如 1K, 2K")
     parser.add_argument("--reference_image", type=str, nargs="*", help="参考图路径或URL (可选，用于图生图)。如果提供，数量必须为 1 或与 prompt 数量一致")
-    
     parser.add_argument("--n", type=int, default=1, help="每个提示词生成图像的数量，默认为 1")
+    parser.add_argument("--force", action="store_true", help="强制重新生成，忽略本地缓存的任务凭证")
     
     args = parser.parse_args()
     
@@ -171,7 +218,6 @@ def main():
     style_suffix = ""
     styles_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates", "styles.yaml")
     
-    # 手动解析 yaml 的简化版本，避免缺少 yaml 模块的问题
     if os.path.exists(styles_file):
         try:
             import yaml
@@ -184,7 +230,6 @@ def main():
                     elif "{prompt}" in template_str:
                         style_suffix = template_str.replace("{prompt}", "").strip()
         except ImportError:
-            # Fallback
             with open(styles_file, "r", encoding="utf-8") as f:
                 in_style = False
                 for line in f:
@@ -212,7 +257,6 @@ def main():
         "Content-Type": "application/json"
     }
     
-    # Run tasks concurrently
     print(f"Starting {len(args.prompt)} concurrent image generation tasks...")
     
     all_success = True
@@ -222,7 +266,7 @@ def main():
         future_to_task = {
             executor.submit(
                 submit_task_and_wait, 
-                prompt, style_suffix, args.size, args.resolution, args.n, output_path, ref_img, headers
+                prompt, style_suffix, args.size, args.resolution, args.n, output_path, ref_img, headers, args.force
             ): (prompt, output_path)
             for prompt, output_path, ref_img in zip(args.prompt, args.output, ref_images)
         }
@@ -242,7 +286,7 @@ def main():
                 all_success = False
                 
     if not all_success:
-        print(f"⚠️ Process finished with errors. Saved {total_saved} images total.")
+        print(f"⚠️ Process finished with errors or timeouts. Saved {total_saved} images total.")
         sys.exit(1)
     else:
         print(f"🎉 All tasks completed successfully! Saved {total_saved} images total.")

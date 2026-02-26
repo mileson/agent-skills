@@ -25,27 +25,35 @@ description: 文章配图助手。扫描 Markdown 文件中的图片占位符，
 - **注意：Agent 不需要自己生成最终完整的提示词，只需将提炼的纯画面描述（英文）作为 `--prompt`，风格键名作为 `--style` 传递给生图脚本，脚本会自动拼接。**
 
 ### 3. 生图与落盘
-调用 `scripts/generate_image.py` 脚本生成图片，并确保严格按照占位符的路径保存。
+提取所有占位符后，**并发一次性提交**所有的生成请求（通过传入多个 `--prompt` 和 `--output` 参数给脚本），并确保严格按照占位符的路径保存。
 
 **使用示例：**
 ```bash
 python3 ~/.cursor/skills/article-illustrator/scripts/generate_image.py \
-  --prompt "A user interacting with a login and registration flow, data packets encapsulated in a glowing secure tunnel, traveling from a smartphone to a cloud server, unbreakable transparent energy shield, high-tech atmosphere, blue and green color tones" \
+  --prompt "A user interacting with a login and registration flow..." "Another prompt for second image..." \
   --style "3d_isometric" \
-  --output "/绝对路径或相对于工作区的路径/Materials/Medias/images/login.png" \
+  --output "/绝对路径/login.png" "/绝对路径/second.png" \
   --size "16:9" \
   --resolution "1K"
 ```
 
 **参数说明：**
-- `--prompt`: 提炼后的纯画面英文描述（不需要带风格描述，脚本会自动结合模板加上）。
+- `--prompt`: 提炼后的纯画面英文描述。**支持传入多个提示词（用空格分隔的多个字符串）以实现并发生成**。
 - `--style`: `styles.yaml` 中的键名（如 `flat_concept`, `3d_isometric`, `minimalist_ui`, `metaphorical_scene`）。
-- `--output`: 图片必须保存的确切本地路径，**必须**与 Markdown 占位符指向的相对路径对齐并保持绝对一致！
+- `--output`: 图片必须保存的确切本地路径，**必须**与 Markdown 占位符指向的相对路径对齐并保持绝对一致！**注意：传入的路径数量必须与 `--prompt` 数量完全一致！**
 - `--size`: 比例，如 `16:9`, `1:1`, `4:3`。
 - `--resolution`: 分辨率，默认为 `1K`，也可选 `2K`。
+- `--force`: (可选) 强制重新生成，忽略本地缓存的任务凭证。
 
 ### 4. 循环与完成
-处理完一个占位符后，检查并处理下一个，直到文章中所有目标配图生成完毕。生成结束后，向用户汇报最终生成的图片列表和落盘路径。
+所有目标配图生成完毕后，向用户汇报最终生成的图片列表和落盘路径。
+
+## 🛡️ 资金保护与重试规则 (Fund Protection Rules)
+
+生图 API 调用会消耗真实资金。你必须严格遵守以下规则：
+1. **绝不自动重试**：如果脚本执行失败（例如网络超时、524 错误、轮询超时等），你**绝对不能**擅自重新执行生图命令。
+2. **强制汇报拦截**：遇到错误时，必须立即中止当前工作流，向用户汇报报错信息以及已获取到的 `task_id`（如果有）。
+3. **把决定权交给用户**：询问用户是选择“使用相同命令继续轮询（脚本会自动读取本地缓存的 task_id）”、“放弃当前图”还是“使用 `--force` 参数强制重新扣费生成”。
 
 ## 依赖说明
 - **API 通道**：生图接口请求 `https://api.apimart.ai/v1/images/generations`，基于 Gemini 3 Pro Image 模型。
