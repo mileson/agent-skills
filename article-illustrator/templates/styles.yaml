@@ -1,0 +1,20 @@
+styles:
+  flat_concept:
+    name: "扁平概念插画 (Flat Concept Vector)"
+    description: "适合解释抽象概念、表达某种状态或态度。"
+    template: "{prompt}, flat vector illustration, minimalist design, corporate memphis style, clean background, soft color palette, highly conceptual, high quality, 8k resolution"
+  
+  3d_isometric:
+    name: "3D等距图解 (3D Isometric)"
+    description: "适合技术架构、流程步骤、系统关系、模块拆解。"
+    template: "{prompt}, 3D isometric illustration, clay render style, soft studio lighting, clean background, miniature diorama, high resolution, detailed"
+  
+  minimalist_ui:
+    name: "极简 UI 概念 (Minimalist UI Mockup)"
+    description: "适合功能教程、产品界面说明。"
+    template: "{prompt}, abstract minimalist UI mockup, clean wireframe style, floating elements, glassmorphism, soft shadows, tech-focused, elegant design"
+  
+  metaphorical_scene:
+    name: "场景隐喻 (Metaphorical Scene)"
+    description: "适合职场故事、心路历程、对比场景。"
+    template: "{prompt}, modern editorial illustration, symbolic representation, cinematic lighting, focal point on the subject, expressive, masterpiece"
