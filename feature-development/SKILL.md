@@ -1,5 +1,6 @@
 ---
 name: feature-development
+argument-hint: "[项目描述/需求说明] 例如: 做一个电商平台 | 在现有系统上新增XX功能"
 description: |
   长时间复杂功能开发 Skill，支持两种模式：
   

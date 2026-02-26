@@ -28,7 +28,10 @@ def download_image(url, save_path):
     """下载图片并保存到指定路径"""
     os.makedirs(os.path.dirname(os.path.abspath(save_path)), exist_ok=True)
     print(f"Downloading image to {save_path} ...")
-    urllib.request.urlretrieve(url, save_path)
+    response = requests.get(url)
+    response.raise_for_status()
+    with open(save_path, 'wb') as f:
+        f.write(response.content)
     print(f"✅ Image successfully saved to {save_path}")
 
 def main():
@@ -38,6 +41,8 @@ def main():
     parser.add_argument("--output", type=str, required=True, help="图片的本地保存路径")
     parser.add_argument("--size", type=str, default="16:9", help="图片比例, 如 16:9, 1:1, 4:3 等")
     parser.add_argument("--resolution", type=str, default="1K", help="图片分辨率, 如 1K, 2K")
+    
+    parser.add_argument("--n", type=int, default=1, help="生成图像的数量，默认为 1")
     
     args = parser.parse_args()
 
@@ -95,7 +100,7 @@ def main():
     data = {
         "model": "gemini-3-pro-image-preview",
         "prompt": final_prompt,
-        "n": 1,
+        "n": args.n,
         "size": args.size,
         "resolution": args.resolution
     }
@@ -134,12 +139,29 @@ def main():
                 
                 if status in ["succeeded", "completed"]:
                     images = status_data.get("result", {}).get("images", [])
-                    if images and len(images) > 0 and images[0].get("url") and len(images[0]["url"]) > 0:
-                        image_url = images[0]["url"][0]
-                        download_image(image_url, args.output)
-                        sys.exit(0)
+                    if images and len(images) > 0:
+                        saved_files = []
+                        for idx, img in enumerate(images):
+                            if img.get("url") and len(img["url"]) > 0:
+                                image_url = img["url"][0]
+                                
+                                # Handle multiple outputs by appending index if n > 1
+                                current_output = args.output
+                                if args.n > 1:
+                                    base, ext = os.path.splitext(args.output)
+                                    current_output = f"{base}_{idx+1}{ext}"
+                                    
+                                download_image(image_url, current_output)
+                                saved_files.append(current_output)
+                        
+                        if saved_files:
+                            print(f"Successfully saved {len(saved_files)} images.")
+                            sys.exit(0)
+                        else:
+                            print("Task completed but no valid image URLs found.")
+                            sys.exit(1)
                     else:
-                        print("Task completed but no image URL found.")
+                        print("Task completed but no images returned.")
                         sys.exit(1)
                 elif status == "failed":
                     error_msg = status_data.get("error", {}).get("message", "Unknown error")
