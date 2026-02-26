@@ -225,6 +225,11 @@ def main():
                 styles_data = yaml.safe_load(f)
                 if args.style in styles_data.get("styles", {}):
                     template_str = styles_data["styles"][args.style].get("template", "")
+                    
+                    # 动态注入品牌（如果传入的 prompt 里已经包含了品牌，脚本不再处理 {brand_guidelines}，
+                    # 但为了兼容 yaml 中的 {brand_guidelines} 占位符，需要将其清空，因为 Agent 已经在 prompt 里面注入了）
+                    template_str = template_str.replace("{brand_guidelines},", "").replace("{brand_guidelines}", "").strip()
+                    
                     if "{prompt}," in template_str:
                         style_suffix = template_str.replace("{prompt},", "").strip()
                     elif "{prompt}" in template_str:
@@ -237,6 +242,9 @@ def main():
                         in_style = True
                     elif in_style and line.strip().startswith("template:"):
                         template_str = line.split("template:", 1)[1].strip().strip('"').strip("'")
+                        
+                        template_str = template_str.replace("{brand_guidelines},", "").replace("{brand_guidelines}", "").strip()
+                        
                         if "{prompt}," in template_str:
                             style_suffix = template_str.replace("{prompt},", "").strip()
                         elif "{prompt}" in template_str:

@@ -1,14 +1,34 @@
 styles:
-  flat_concept:
-    name: "扁平概念插画 (Flat Concept Vector)"
-    description: "适合解释抽象概念、表达某种状态或态度。"
-    template: "{prompt}, flat vector illustration, minimalist design, corporate memphis style, clean background, soft color palette, highly conceptual, high quality, 8k resolution"
+  ppt_graphic:
+    name: "PPT 扁平矢量配图 (PPT Flat Graphic)"
+    description: "适合企业汇报、商业演讲、幻灯片配图，专业且干净。"
+    template: "{prompt}, modern flat vector illustration, corporate memphis style, clean background, minimal details, professional color palette, highly conceptual, suitable for presentation slides, 8k resolution"
   
   3d_isometric:
     name: "3D等距图解 (3D Isometric)"
     description: "适合技术架构、流程步骤、系统关系、模块拆解。"
     template: "{prompt}, 3D isometric illustration, clay render style, soft studio lighting, clean background, miniature diorama, high resolution, detailed"
   
+  3d_icon:
+    name: "3D 立体图标 (3D UI Icon)"
+    description: "适合制作 App、网页的立体图标、高质感按钮或物件。"
+    template: "{prompt}, 3D app icon, high quality glossy material, soft studio lighting, clean white background, center composition, detailed 3D render, octane render, trending on dribbble"
+
+  chat_sticker:
+    name: "聊天表情包 (Chat Sticker)"
+    description: "适合微信、Slack等聊天工具使用的生动活泼表情包角色图。"
+    template: "{prompt}, cute chibi character, line art style, expressive emotion, white background, thick outlines, flat colors, kawaii style, sticker design"
+  
+  photorealistic:
+    name: "写实摄影 (Photorealistic)"
+    description: "适合需要极度真实的场景，如产品展示、写实风景、人物照片等。"
+    template: "{prompt}, highly detailed photography, hyperrealistic, 8k resolution, cinematic lighting, shot on 35mm lens, sharp focus, masterpiece"
+  
+  anime_style:
+    name: "动漫风格 (Anime Style)"
+    description: "适合二次元插画、动漫角色设计、唯美场景。"
+    template: "{prompt}, highly detailed anime style illustration, Studio Ghibli style, beautiful lighting, vibrant colors, masterpiece, 8k"
+
   minimalist_ui:
     name: "极简 UI 概念 (Minimalist UI Mockup)"
     description: "适合功能教程、产品界面说明。"
@@ -18,3 +38,21 @@ styles:
     name: "场景隐喻 (Metaphorical Scene)"
     description: "适合职场故事、心路历程、对比场景。"
     template: "{prompt}, modern editorial illustration, symbolic representation, cinematic lighting, focal point on the subject, expressive, masterpiece"
+
+  corporate_diagram:
+    name: "商业/技术说明图解 (Corporate Diagram)"
+    description: "适合流程图、架构图、概念图、路线图等需要清晰结构和专业色调的场景。"
+    template: "{prompt}, {brand_guidelines}, modern flat vector illustration, corporate memphis style, clean background, structured layout, infographic style, minimal details, highly conceptual, suitable for presentation slides, 8k resolution"
+    requires_brand: true
+
+  brand_concept:
+    name: "品牌概念图 (Brand Concept Art)"
+    description: "遵循特定品牌视觉规范的商业插画，适合企业演示文稿、概念展示。"
+    template: "{prompt}, {brand_guidelines}, modern illustration, corporate vector art, clean composition, 8k resolution"
+    requires_brand: true
+
+  brand_diagram:
+    name: "品牌流程架构图 (Brand Diagram/Architecture)"
+    description: "遵循特定品牌视觉规范的流程图、技术架构图、业务逻辑说明图。"
+    template: "{prompt}, technical diagram, isometric or flat lay view, {brand_guidelines}, professional layout, minimalist clean background, infographic style, highly structured"
+    requires_brand: true

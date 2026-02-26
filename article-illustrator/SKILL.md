@@ -16,13 +16,18 @@ description: 文章配图助手。扫描 Markdown 文件中的图片占位符，
   - **只处理** `alt` 文本中带有 `[AI生图]` 标记的占位符（例如：`![[AI生图] 数据在安全隧道中传输](Materials/Medias/images/concept.png)`）。
   - **严格跳过/忽略** 带有 `[待截图]` 标记的占位符（例如：`![[待截图] 用户登录页面](...)`）以及没有任何标记的普通图片，这些是留给人类作者手动提供的真实系统截图，千万不能用 AI 假图覆盖！
 
-### 2. 提示词增强与构建
+### 2. 智能匹配风格与品牌 (Smart Styling & Brand Selection)
 针对每一个待处理的 **`[AI生图]`** 占位符，执行以下操作：
 - 读取占位符前后各约 300 字的上下文。
 - 提取 `alt` 中的描述（例如从 `![[AI生图] 数据加密传输]` 中提取“数据加密传输”）。
 - 遵循 `references/prompt-enhancement-guide.md` 中的规范，提炼核心实体、隐喻和画面氛围。
-- 查阅 `templates/styles.yaml`，选择一个最适合当前场景的风格（例如 `3d_isometric` 或 `minimalist_ui`）。
-- **注意：Agent 不需要自己生成最终完整的提示词，只需将提炼的纯画面描述（英文）作为 `--prompt`，风格键名作为 `--style` 传递给生图脚本，脚本会自动拼接。**
+- 查阅 `templates/styles.yaml`，选择最适合当前场景的风格。**特别注意：** 对于文章中的流程图、架构图、数据流转等结构化图解，**强烈建议使用 `corporate_diagram` 风格**。对于概念说明图，使用 `brand_concept` 风格。
+- **品牌动态注入**：
+  - 如果选用的风格包含 `requires_brand: true`（如上述两个）：
+    - 检查用户是否在全局要求了特定品牌（如 Anthropic），如果是，读取 `references/brands/anthropic.md`。
+    - 如果未指定，读取默认高品质商业配置 `references/brands/default_corporate.md`。
+  - 提取规范中的 **"Prompt Injection Template"**（包含具体色值和品牌调性）。
+  - **重要：Agent 必须自己将提取到的品牌色彩描述拼接到最终传给 `--prompt` 的英文文本中**，脚本无法自动解析 `{brand_guidelines}` 变量。如果是普通风格（无品牌要求），则正常只传画面描述。
 
 ### 3. 生图与落盘
 提取所有占位符后，**并发一次性提交**所有的生成请求（通过传入多个 `--prompt` 和 `--output` 参数给脚本），并确保严格按照占位符的路径保存。

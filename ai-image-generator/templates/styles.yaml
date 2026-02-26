@@ -38,3 +38,21 @@ styles:
     name: "场景隐喻 (Metaphorical Scene)"
     description: "适合职场故事、心路历程、对比场景。"
     template: "{prompt}, modern editorial illustration, symbolic representation, cinematic lighting, focal point on the subject, expressive, masterpiece"
+
+  corporate_diagram:
+    name: "商业/技术说明图解 (Corporate Diagram)"
+    description: "适合流程图、架构图、概念图、路线图等需要清晰结构和专业色调的场景。"
+    template: "{prompt}, {brand_guidelines}, modern flat vector illustration, corporate memphis style, clean background, structured layout, infographic style, minimal details, highly conceptual, suitable for presentation slides, 8k resolution"
+    requires_brand: true
+
+  brand_concept:
+    name: "品牌概念图 (Brand Concept Art)"
+    description: "遵循特定品牌视觉规范的商业插画，适合企业演示文稿、概念展示。"
+    template: "{prompt}, {brand_guidelines}, modern illustration, corporate vector art, clean composition, 8k resolution"
+    requires_brand: true
+
+  brand_diagram:
+    name: "品牌流程架构图 (Brand Diagram/Architecture)"
+    description: "遵循特定品牌视觉规范的流程图、技术架构图、业务逻辑说明图。"
+    template: "{prompt}, technical diagram, isometric or flat lay view, {brand_guidelines}, professional layout, minimalist clean background, infographic style, highly structured"
+    requires_brand: true

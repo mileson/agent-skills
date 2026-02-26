@@ -48,6 +48,19 @@ Use when no template or reference presentation is available.
 
 ---
 
+## Style & Brand Routing
+
+Before generating or styling a PPTX, intelligently determine the appropriate visual style by loading the matching markdown file from `references/styles/`:
+
+1. **Explicit Request**: If the user explicitly specifies a brand or style (e.g., "Use Anthropic style"), you MUST read and apply the corresponding style file from `references/styles/` (e.g., `references/styles/anthropic.md`).
+2. **Contextual Inference**: If the user does not specify a brand/style, analyze the content type:
+   - For **Flowcharts, Architecture Diagrams, Business Workflows, and Concept Maps**: Automatically apply the Modern Flow style by reading `references/styles/modern-flow.md`.
+   - For general presentation slides: Fall back to the default guidelines in the **Design Ideas** section below.
+
+Available styles are located in the `references/styles/` directory.
+
+---
+
 ## Design Ideas
 
 **Don't create boring slides.** Plain bullets on a white background won't impress anyone. Consider ideas from this list for each slide.

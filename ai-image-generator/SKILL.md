@@ -30,10 +30,19 @@ description: |
 将用户口语化的中文要求扩写为具备高画面表现力的英文提示词。
 **必须阅读并遵循：[references/prompt-enhancement-guide.md](references/prompt-enhancement-guide.md)**，了解如何提炼核心实体、添加光影细节，以及构建最终的 `--prompt`。
 
-### 2. 匹配风格 (Style Selection)
+### 2. 智能匹配风格与品牌 (Smart Styling & Brand Selection)
 
-查阅 `templates/styles.yaml`（你只需读取其 key），根据用户的诉求选择最合适的风格 ID。
-常见的内置风格包括：`ppt_graphic`, `3d_isometric`, `chat_sticker`, `photorealistic`, `3d_icon`, `anime_style` 等。
+查阅 `templates/styles.yaml`（你只需读取其 key）。根据用户的诉求，采用以下**智能风格与品牌注入规则**：
+
+1. **绝对服从原则**：如果用户在提示词中明确指定了具体风格或品牌，必须严格使用用户指定的。
+2. **场景智能推断**：如果用户**未指定**风格，但画面描述属于以下场景（如流程图、架构图、数据流转、业务总结等企业/商业说明性质的图片），请**自动选择** `corporate_diagram` 风格。对于概念说明图，使用 `brand_concept` 风格。对于常规绘图，自由选择最适合的（如 `anime_style`, `photorealistic`）。
+3. **动态品牌注入**：
+   - 如果你选择了任何带有 `requires_brand: true` 的风格模板（或用户明确要求某种品牌感）：
+     - **指定品牌**：如果用户要求了特定品牌（如 Anthropic），读取对应的 `references/brands/anthropic.md`。
+     - **未指定品牌（默认兜底）**：自动读取 `references/brands/default_corporate.md`。
+   - 提取文件中的 **"Prompt Injection Template"**（包含色值和调性）。
+   - 将这串品牌提示词文本放入到模板的 `{brand_guidelines}` 变量位置。**脚本并不会自动处理这个变量，你必须在传给 `--prompt` 之前自己把文字拼好**（即将画面描述、风格后缀和品牌颜色描述合并成一个完整的纯文本英文字符串传给 `--prompt`）。
+   - 如果选择的风格不需要品牌，且模板里也没有 `{brand_guidelines}`，则忽略此步骤。
 
 ### 3. 执行脚本落盘 (Execution)
 
