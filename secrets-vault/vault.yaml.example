@@ -77,3 +77,16 @@ x_oauth:
 # personal:
 #   name: "你的名字"
 #   email: "you@example.com"
+
+# ---- APIMart 生图 (可选) ----
+# apimart_image:
+#   api_url: "https://api.apimart.ai/v1/images/generations"
+#   api_token: "your_apimart_token"
+#   model: "gemini-3-pro-image-preview"
+#   task_status_url: "https://api.apimart.ai/v1/tasks"
+
+# ---- OpenRouter 生图 (可选) ----
+# openrouter_image:
+#   api_url: "https://openrouter.ai/api/v1/chat/completions"
+#   api_key: "sk-or-v1-..."
+#   model: "google/gemini-3.1-flash-image-preview"

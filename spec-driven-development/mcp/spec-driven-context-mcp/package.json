@@ -1,0 +1,23 @@
+{
+  "name": "spec-driven-context-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for spec-driven documentation context tools",
+  "type": "module",
+  "bin": {
+    "spec-driven-context-mcp-server": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "node --loader ts-node/esm src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.4",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  }
+}

@@ -6,26 +6,26 @@ AI 封面图生成工具
 自动生成文章封面图并保存到指定路径。
 
 两种模式：
-  默认模式（推荐）：传入 --article 文章路径，自动使用内置「科技视觉绘图专家」提示词模板
+  默认模式（推荐）：传入 --article 文章路径，自动使用内置平台封面提示词模板
   自定义模式：传入 --prompt 自定义描述
 
 输出路径：
-  --workspace 自动保存到 Materials/Medias/images/cover.jpg（推荐）
+  --workspace 自动保存到 Materials/Medias/images/cover-{platform}.jpg（推荐）
   --output 直接指定输出路径
 
 Usage:
-    # 默认模式：读取文章内容 + 内置提示词模板（推荐）
-    python3 generate_cover.py --article /path/to/article.md --workspace /path/to/workspace
+    # 默认模式：读取文章内容 + 平台预设（推荐）
+    python3 generate_cover.py --article /path/to/article.md --platform wechat --workspace /path/to/workspace
 
     # 自定义模式：直接指定 prompt
-    python3 generate_cover.py --prompt "自定义描述" --workspace /path/to/workspace
+    python3 generate_cover.py --prompt "自定义描述" --platform twitter --workspace /path/to/workspace
 
     # 指定输出路径（替代 --workspace）
-    python3 generate_cover.py --article /path/to/article.md --output /path/to/cover.jpg
+    python3 generate_cover.py --article /path/to/article.md --platform jike --output /path/to/cover.jpg
 
     # 可选参数
-    --size 16:9          # 图片比例（默认 16:9）
-    --resolution 1K      # 分辨率: 1K/2K/4K（默认 1K）
+    --aspect_ratio 21:9  # 图片横纵比（默认取平台 preset，--size 为兼容别名）
+    --resolution 1K      # 分辨率: 1K/2K/4K（默认 1K，除非用户明确要求更高清再调整）
     --lang en            # 自定义模式下生成英文内容（默认 zh 中文）
 
 Requires:
@@ -39,58 +39,87 @@ import subprocess
 import sys
 import time
 
+SUPPORTED_ASPECT_RATIOS = [
+    "1:1", "3:2", "2:3", "4:3", "3:4",
+    "16:9", "9:16", "5:4", "4:5", "21:9",
+    "1:4", "4:1", "1:8", "8:1"
+]
+
+PLATFORM_PRESETS = {
+    "wechat": {
+        "display_name": "微信公众号",
+        "default_aspect_ratio": "21:9",
+        "recommended_size": "900x383",
+        "visual_direction": "科技媒体头图、宽幅编辑感、电影级首屏视觉",
+        "composition_rule": "主体聚焦中央安全区，左右保留叙事空间，适合横向封面裁切",
+        "feed_goal": "在文章列表和分享卡片里一眼抓住读者注意力",
+    },
+    "jike": {
+        "display_name": "即刻",
+        "default_aspect_ratio": "1:1",
+        "recommended_size": "1080x1080",
+        "visual_direction": "极简科技社区、清爽留白、信息密度高但不拥挤",
+        "composition_rule": "主体居中，四周留足安全边距，适合小尺寸方图预览",
+        "feed_goal": "在社区动态流中保持辨识度，同时不破坏即刻的轻量感",
+    },
+    "twitter": {
+        "display_name": "Twitter/X",
+        "default_aspect_ratio": "4:5",
+        "recommended_size": "1440x1800",
+        "visual_direction": "高冲击视觉海报、移动端优先、强主体和高对比",
+        "composition_rule": "纵向卡片构图，主体位于中上区域，适合 feed 首图停留",
+        "feed_goal": "在移动端时间线中提升停留和点击意愿",
+    },
+    "xhs": {
+        "display_name": "小红书",
+        "default_aspect_ratio": "3:4",
+        "recommended_size": "1080x1440",
+        "visual_direction": "封面感、生活化、强视觉主题，适合图文笔记首图",
+        "composition_rule": "竖版构图，主体偏中上，预留封面标题安全区",
+        "feed_goal": "适合作为图文笔记封面，但当前仅预留未来接入",
+    },
+    "zhihu": {
+        "display_name": "知乎",
+        "default_aspect_ratio": "16:9",
+        "recommended_size": "1280x720",
+        "visual_direction": "知识型头图、克制、理性、主题清晰",
+        "composition_rule": "宽幅横图，主体居中，强调概念表达和信息整洁",
+        "feed_goal": "适合作为文章头图，但当前仅预留未来接入",
+    },
+}
+
 
 # ═══════════════════════════════════════════════════════════════════════
-# 内置提示词模板：科技视觉绘图专家 (Tech Visual Illustrator)
+# 内置提示词模板：平台封面图生成器
 # 当使用 --article 模式时，{article_content} 会被替换为文章内容
 # ═══════════════════════════════════════════════════════════════════════
 
 DEFAULT_PROMPT_TEMPLATE = r"""
-# 科技视觉绘图专家 (Tech Visual Illustrator)
-
+# 平台封面图生成器 (Platform Cover Illustrator)
 
 ## 角色设定（Role Definition）
-你是一位专精于科技媒体头图设计的资深视觉总监，拥有好莱坞级别的宽幅构图审美。你深谙微信公众号（WeChat Official Account）的视觉传播法则，擅长在 16:9 的宽阔画幅中，利用"暗黑赛博"与"光影折射"构建具有叙事张力的 3D 场景。你的核心能力在于视觉转译——能敏锐抓取文章或链接中的核心论点，将其瞬间转化为极具点击欲望的、电影级质感的超写实渲染图，确保在信息流中一眼抓住读者眼球。
+你是一位擅长将文章核心论点转译为封面图的资深视觉总监。你需要根据目标平台的展示方式，
+生成一张适合 {platform_display_name} 内容首屏传播的 AI 封面图。
 
+## 平台约束（Platform Context）
+- 目标平台：{platform_display_name}
+- 推荐尺寸：{recommended_size}
+- 推荐比例：{aspect_ratio}
+- 视觉方向：{visual_direction}
+- 构图规则：{composition_rule}
+- 传播目标：{feed_goal}
 
 ## 核心任务（Core Task）
-你的任务是接收用户的内容（链接或文本），直接调用绘图工具生成符合特定"暗黑科技/赛博朋克"风格的封面图。
+阅读文章内容，提炼核心论点、情绪和视觉隐喻，生成一张具有传播力的科技主题封面图。
 
+## 视觉规范（Strict Style Protocol）
+- 基础画质：high detail, cinematic lighting, editorial composition, hyper-realistic or premium concept illustration
+- 风格基调：现代科技、电影感、强叙事、避免廉价模板感
+- 构图要求：严格遵循目标平台比例，主体保持在中央安全区
+- 文字要求：默认不要在图片中渲染任何可见文字、数字、UI 标签、水印或 logo
+- 内容要求：不要生成信息图，不要生成带大段文案的海报，不要生成 low-res 或拥挤拼贴
 
-## 核心工作流 (Core Workflow)
-当用户提供输入后，你必须严格按以下步骤执行，不要询问，直接行动：
-1. 分析内容 (Analyze):
-- 若为链接：必须联网深度阅读，提炼核心主题。
-- 若为文本：理解核心语义。
-
-2. 设计画面 (Design): 在后台构建视觉隐喻，将抽象概念转化为具象的 3D 物体（如：玻璃质感的芯片、发光的锁链、全息投影）。
-
-3. 执行绘图 (EXECUTE DRAWING):
-- 立即调用你的绘图工具 (DALL-E / Image Gen Tool)。
-- 不要仅仅输出文字描述，必须直接生成图片。
-
-
-## 视觉风格规范 (Strict Style Protocol)
-你构建给绘图工具的 Prompt 必须强制包含以下风格元素（你自己在后台组合，无需展示给用户）：
-- 基础画质: 3D Render, Octane Render (OC渲染), Unreal Engine 5, Hyper-realistic (超写实), 8k resolution.
-- 色调: Dark Mode (暗黑模式), Deep Navy Background (深蓝/黑背景). 点缀色：Neon Cyan (青), Electric Violet (紫), Gold (金).
-- 光影: Volumetric lighting (体积光), Glowing edges (边缘发光), Glassmorphism (玻璃拟态), Metallic textures (金属质感).
-- 氛围: Cyberpunk (赛博朋克), Data flow (数据流), High-tech abstract (高科技抽象).
-- 构图: Wide angle (广角), Center composition (主体居中但留白).
-- 文字: 【最高优先级规则】图像中如果出现任何文字、标签、标注、数字标识、UI元素上的文字，必须全部使用中文（简体中文）。严禁出现任何英文字母、英文单词或英文句子。如果无法确保文字是中文，则不要在图像中放入任何文字。
-- 其他元素：如果用户提供了附图的元素，请将认真分析这些图像，并将其完美地融入到生成的图像中.
-
-
-## 尺寸设置 (Aspect Ratio)
-- 强制比例: 设置绘图工具生成的图片比例为 Wide (16:9) 或尽量接近 2.35:1 (取决于具体工具支持的最宽比例)，以适配微信公众号封面。
-
-
-## 示例逻辑 (Internal Logic Example)
-- 场景:用户输入关于"AI 隐私泄露"。
-- 你的行动: 立即生成图像，提示词包含："High-tech 3D render of a cracked glass padlock floating in a dark digital void, data leaking out like liquid neon, cyberpunk city background, octane render, dark blue aesthetic, [User-specified aspect ratio] aspect ratio." -> [生成图片]
-
-
-## 用户输入的内容 (User Configuration)
+## 用户输入的内容（User Configuration）
 {article_content}
 """.strip()
 
@@ -147,12 +176,12 @@ def _curl_json(method: str, url: str, token: str, payload: dict = None,
 
 
 def submit_image_task(api_url: str, api_token: str, model: str, prompt: str,
-                      size: str = "16:9", resolution: str = "1K") -> str:
+                      aspect_ratio: str = "16:9", resolution: str = "1K") -> str:
     """提交图像生成任务，返回 task_id"""
     data = _curl_json("POST", api_url, api_token, {
         "model": model,
         "prompt": prompt,
-        "size": size,
+        "size": aspect_ratio,
         "n": 1,
         "resolution": resolution,
     })
@@ -204,15 +233,27 @@ def download_image(image_url: str, output_path: str):
 # Prompt 构建
 # ═══════════════════════════════════════════════════════════════════════
 
-def build_prompt_from_article(article_path: str, lang: str = "zh") -> str:
-    """读取文章内容，注入内置「科技视觉绘图专家」模板。
+def get_platform_preset(platform: str | None) -> dict:
+    """返回平台 preset；未指定则使用通用默认值。"""
+    if platform and platform in PLATFORM_PRESETS:
+        return PLATFORM_PRESETS[platform]
+    return {
+        "display_name": "通用平台",
+        "default_aspect_ratio": "16:9",
+        "recommended_size": "1280x720",
+        "visual_direction": "现代科技媒体封面，强调主题提炼和视觉记忆点",
+        "composition_rule": "主体保持在中央安全区，避免贴边和复杂拼贴",
+        "feed_goal": "提升内容首屏点击意愿",
+    }
 
-    模板已包含：
-    - 暗黑赛博/3D 渲染风格约束
-    - 强制图片中文字使用中文（默认）或英文
-    - 16:9 宽幅构图
-    - 视觉转译工作流
-    """
+
+def build_prompt_from_article(
+    article_path: str,
+    platform: str | None = None,
+    lang: str = "zh",
+    aspect_ratio: str = "16:9"
+) -> str:
+    """读取文章内容，注入平台封面模板。"""
     with open(article_path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -221,40 +262,50 @@ def build_prompt_from_article(article_path: str, lang: str = "zh") -> str:
     if len(content) > max_chars:
         content = content[:max_chars] + "\n\n[... 内容已截断，以上为核心部分 ...]"
 
-    prompt = DEFAULT_PROMPT_TEMPLATE.replace("{article_content}", content)
+    preset = get_platform_preset(platform)
+    prompt = DEFAULT_PROMPT_TEMPLATE.format(
+        platform_display_name=preset["display_name"],
+        recommended_size=preset["recommended_size"],
+        aspect_ratio=aspect_ratio,
+        visual_direction=preset["visual_direction"],
+        composition_rule=preset["composition_rule"],
+        feed_goal=preset["feed_goal"],
+        article_content=content,
+    )
 
-    # 在最终 prompt 头部再追加一层语言强制约束（双重保险）
-    if lang == "zh":
-        lang_guard = (
-            "【最高优先级指令 - 必须遵守】"
-            "生成的图像中，所有可见文字、标签、数字标识、UI文字必须使用中文（简体中文）。"
-            "严禁出现任何英文字母或英文单词。"
-            "如果无法保证文字是中文，就不要在图像中放任何文字。\n\n"
-        )
-    else:
-        lang_guard = ""
+    text_guard = (
+        "【最高优先级指令】不要在图片中渲染任何可见文字、数字、UI 标签、水印或 logo。"
+        "只输出纯画面封面，不做信息海报。\n\n"
+    )
 
-    return lang_guard + prompt
+    return text_guard + prompt
 
 
-def build_prompt_custom(user_prompt: str, lang: str = "zh") -> str:
+def build_prompt_custom(
+    user_prompt: str,
+    lang: str = "zh",
+    aspect_ratio: str = "16:9",
+    platform: str | None = None
+) -> str:
     """为自定义 prompt 添加语言和质量约束。
 
     默认生成中文内容的图片（lang=zh），
     仅当用户明确要求英文时传 lang=en。
     """
+    preset = get_platform_preset(platform)
     quality_suffix = (
         "Professional quality, high resolution, clean composition, "
-        "suitable for article cover image."
+        f"suitable for {preset['display_name']} article cover image. "
+        f"Recommended canvas {preset['recommended_size']}."
     )
     if lang == "zh":
         lang_prefix = (
             "【重要】图片中出现的所有文字、标签、标注、说明必须使用中文（简体）。"
             "不要出现任何英文文字。"
         )
-        return f"{lang_prefix} {user_prompt} {quality_suffix}"
+        return f"{lang_prefix} Aspect ratio: {aspect_ratio}. {user_prompt} {quality_suffix}"
     else:
-        return f"{user_prompt} {quality_suffix}"
+        return f"Aspect ratio: {aspect_ratio}. {user_prompt} {quality_suffix}"
 
 
 def resolve_output_path(args) -> str:
@@ -262,12 +313,15 @@ def resolve_output_path(args) -> str:
 
     优先级：
     1. --output 直接指定路径
-    2. --workspace 自动保存到 Materials/Medias/images/cover.jpg
+    2. --workspace 自动保存到 Materials/Medias/images/cover-{platform}.jpg
     """
     if args.output:
         return args.output
     if args.workspace:
-        return os.path.join(args.workspace, "Materials", "Medias", "images", "cover.jpg")
+        filename = "cover.jpg"
+        if getattr(args, "platform", None):
+            filename = f"cover-{args.platform}.jpg"
+        return os.path.join(args.workspace, "Materials", "Medias", "images", filename)
     raise ValueError("必须指定 --output 或 --workspace 其中之一")
 
 
@@ -281,11 +335,11 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
-  # 默认模式（推荐）：读取文章，使用内置「科技视觉绘图专家」提示词
-  python3 generate_cover.py --article Output/wechat/article.md --workspace .
+  # 默认模式（推荐）：读取文章，使用平台预设
+  python3 generate_cover.py --article Output/wechat/article.md --platform wechat --workspace .
 
   # 自定义模式：直接描述
-  python3 generate_cover.py --prompt "深蓝色背景的AI芯片封面" --workspace .
+  python3 generate_cover.py --prompt "深蓝色背景的AI芯片封面" --platform twitter --workspace .
 """,
     )
 
@@ -300,6 +354,12 @@ def main():
         help="自定义图片描述 prompt",
     )
 
+    parser.add_argument(
+        "--platform",
+        choices=sorted(PLATFORM_PRESETS.keys()),
+        help="目标平台，决定默认比例、视觉方向和默认输出文件名",
+    )
+
     # 输出路径：二选一
     output_group = parser.add_mutually_exclusive_group(required=True)
     output_group.add_argument(
@@ -308,16 +368,19 @@ def main():
     )
     output_group.add_argument(
         "--workspace",
-        help="工作区根目录，自动保存到 Materials/Medias/images/cover.jpg",
+        help="工作区根目录，自动保存到 Materials/Medias/images/cover-{platform}.jpg",
     )
 
     parser.add_argument(
-        "--size", default="16:9",
-        help="图片比例 (默认 16:9，支持: 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9)",
+        "--aspect_ratio", "--size",
+        dest="aspect_ratio",
+        default=None,
+        choices=SUPPORTED_ASPECT_RATIOS,
+        help="图片横纵比 (默认取平台 preset；未指定平台时为 16:9；--size 为兼容别名)",
     )
     parser.add_argument(
         "--resolution", default="1K",
-        help="分辨率: 1K/2K/4K (默认 1K)",
+        help="分辨率: 1K/2K/4K (默认 1K，除非用户明确要求更高清再调整)",
     )
     parser.add_argument(
         "--lang", default="zh", choices=["zh", "en"],
@@ -329,16 +392,20 @@ def main():
     output_path = resolve_output_path(args)
 
     # ── 构建最终 prompt ──
+    aspect_ratio = args.aspect_ratio
+    if aspect_ratio is None:
+        aspect_ratio = get_platform_preset(args.platform)["default_aspect_ratio"]
+
     if args.article:
         if not os.path.isfile(args.article):
             print(f"❌ 文件不存在: {args.article}")
             sys.exit(1)
         mode = "article"
-        final_prompt = build_prompt_from_article(args.article, args.lang)
+        final_prompt = build_prompt_from_article(args.article, args.platform, args.lang, aspect_ratio)
         display_source = os.path.basename(args.article)
     else:
         mode = "custom"
-        final_prompt = build_prompt_custom(args.prompt, args.lang)
+        final_prompt = build_prompt_custom(args.prompt, args.lang, aspect_ratio, args.platform)
         display_source = args.prompt[:80]
 
     # ── 1. 从 secrets-vault 获取 API 配置 ──
@@ -351,10 +418,11 @@ def main():
     # ── 2. 提交生成任务 ──
     print(f"🎨 提交图像生成任务...")
     print(f"   模式: {'内置模板 + 文章内容' if mode == 'article' else '自定义 prompt'}")
+    print(f"   平台: {args.platform or 'generic'}")
     print(f"   来源: {display_source}")
     print(f"   输出: {output_path}")
-    print(f"   比例: {args.size} | 分辨率: {args.resolution}")
-    task_id = submit_image_task(api_url, api_token, model, final_prompt, args.size, args.resolution)
+    print(f"   横纵比: {aspect_ratio} | 分辨率: {args.resolution}")
+    task_id = submit_image_task(api_url, api_token, model, final_prompt, aspect_ratio, args.resolution)
     print(f"   Task ID: {task_id}")
 
     # ── 3. 轮询等待 ──

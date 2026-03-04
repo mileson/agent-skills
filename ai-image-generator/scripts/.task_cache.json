@@ -1,1 +1,17 @@
-{}
+{
+  "/Users/mileson/Desktop/nxin-ai-showcase-ppt/images/p4_approval.png": {
+    "task_id": "task_01KJHBYKXS0Y6THHRTVYXPVWVP",
+    "status": "submitted",
+    "timestamp": 1772256972.834035
+  },
+  "/Users/mileson/Desktop/nxin-ai-showcase-ppt/images/p8_expert.png": {
+    "task_id": "task_01KJHBYWTZSM0WH32HNZF7QNAF",
+    "status": "submitted",
+    "timestamp": 1772256981.752846
+  },
+  "/Users/mileson/Desktop/nxin-ai-showcase-ppt/images/p2_data_review.png": {
+    "task_id": "task_01KJHCSJJTZQ57592Q9FV22W9J",
+    "status": "submitted",
+    "timestamp": 1772257855.9881332
+  }
+}

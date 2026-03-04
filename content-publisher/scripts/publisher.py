@@ -20,7 +20,7 @@
 # - platforms/wechat.py: 微信公众号发布器（Phase 1）
 # - platforms/xhs.py: 小红书占位（Phase 2）
 # - platforms/zhihu.py: 知乎占位（Phase 2）
-# - secrets-vault skill: 获取平台凭证
+# - secrets-vault skill: 获取平台凭证（唯一敏感凭证来源）
 #
 # 维护规则 (Maintenance Rules)
 # 1. 每次修改代码逻辑后，必须检查并更新上述信息。
@@ -38,11 +38,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from platforms.wechat import WeChatPublisher
 from platforms.xhs import XHSPublisher
 from platforms.zhihu import ZhihuPublisher
+from platforms.jike import JikePublisher
 
 PLATFORM_MAP = {
     "wechat": WeChatPublisher,
     "xhs": XHSPublisher,
     "zhihu": ZhihuPublisher,
+    "jike": JikePublisher,
 }
 
 SUPPORTED_PLATFORMS = list(PLATFORM_MAP.keys())
@@ -112,6 +114,7 @@ def cmd_list_platforms(args):
     print("Supported platforms:\n")
     status_map = {
         "wechat": ("✅", "可用 (Phase 1)"),
+        "jike": ("✅", "可用 (Beta，非官方接口)"),
         "xhs": ("🔜", "开发中 (Phase 2)"),
         "zhihu": ("🔜", "开发中 (Phase 2)"),
     }
@@ -119,6 +122,36 @@ def cmd_list_platforms(args):
         icon, status = status_map.get(pid, ("❓", "未知"))
         cls = PLATFORM_MAP[pid]
         print(f"  {icon} {pid:10s} {cls.platform_name:10s} {status}")
+
+
+def cmd_search_topic(args):
+    """Search Jike topics/channels."""
+    platform_id = args.platform
+    if platform_id != "jike":
+        print(
+            json.dumps({
+                "status": "error",
+                "message": "search-topic 目前仅支持 jike",
+            }, ensure_ascii=False, indent=2)
+        )
+        sys.exit(1)
+
+    publisher = JikePublisher(args.workspace)
+    try:
+        topics = publisher.search_topics(args.query)
+        print(json.dumps({
+            "status": "success",
+            "platform": "jike",
+            "query": args.query,
+            "total": len(topics),
+            "topics": topics,
+        }, ensure_ascii=False, indent=2))
+    except Exception as e:
+        print(json.dumps({
+            "status": "error",
+            "message": f"Topic search failed: {e}",
+        }, ensure_ascii=False, indent=2))
+        sys.exit(1)
 
 
 def main():
@@ -147,6 +180,13 @@ def main():
     # list command
     list_parser = subparsers.add_parser("list", help="List supported platforms")
     list_parser.set_defaults(func=cmd_list_platforms)
+
+    # search-topic command
+    topic_parser = subparsers.add_parser("search-topic", help="Search publish channels/topics")
+    topic_parser.add_argument("--platform", "-p", required=True, choices=SUPPORTED_PLATFORMS)
+    topic_parser.add_argument("--workspace", "-w", required=True, help="Workspace directory path")
+    topic_parser.add_argument("--query", "-q", required=True, help="Topic search keyword")
+    topic_parser.set_defaults(func=cmd_search_topic)
 
     args = parser.parse_args()
 

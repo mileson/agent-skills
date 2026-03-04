@@ -1,0 +1,295 @@
+{
+  "version": "2.0",
+  "description": "AI 生图提示词模板库，用于 PPT 内容生成",
+  "updated": "2026-02-27",
+  "golden_rule": "所有 AI 生图禁止图中出现文字，文字由 PPT 后期添加",
+
+  "templates": {
+    "architecture": {
+      "id": "architecture",
+      "name": "架构图模板",
+      "use_for": ["系统架构", "技术架构", "部署架构", "数据流图"],
+      "content_source_type": "C2",
+
+      "base_prompt": "Generate a clean technical architecture diagram for {SYSTEM_NAME}.",
+
+      "style_variations": {
+        "flat": {
+          "description": "扁平化设计",
+          "prompt_suffix": "Style: Modern flat design with clean lines and solid colors. Minimalist aesthetic."
+        },
+        "isometric": {
+          "description": "等距视角",
+          "prompt_suffix": "Style: Isometric 3D view with depth and shadows. Professional tech illustration."
+        },
+        "3d": {
+          "description": "3D 渲染",
+          "prompt_suffix": "Style: Realistic 3D render with lighting effects. Premium tech visualization."
+        },
+        "dark": {
+          "description": "深色主题",
+          "prompt_suffix": "Style: Dark theme with glowing elements and neon accents. Cyber-tech aesthetic."
+        }
+      },
+
+      "layer_templates": {
+        "three_tier": "Layers: Presentation Layer → Business Logic Layer → Data Layer",
+        "microservices": "Layers: API Gateway → Microservices Cluster → Message Queue → Database Cluster",
+        "cloud": "Layers: CDN → Load Balancer → Application Servers → Cache → Database",
+        "ml_pipeline": "Layers: Data Ingestion → Processing → Model Training → Serving → Monitoring"
+      },
+
+      "color_schemes": {
+        "dark_tech": "Color scheme: Dark blue (#1E3A5F) and black background with cyan (#00B4D8) and gold (#FFD60A) accents",
+        "light_clean": "Color scheme: White background with navy blue (#1E3A8A) and teal (#0D9488) elements",
+        "brand": "Color scheme: Brand colors {BRAND_COLORS}"
+      },
+
+      "example_prompts": [
+        "Generate a clean technical architecture diagram for AI Recommendation System. Style: Modern flat design. Layers: User Interface → API Gateway → Recommendation Engine → ML Models → Data Lake. Color scheme: Dark blue background with cyan accents. NO TEXT in the image, leave numbered areas (①②③④⑤) for PPT annotation.",
+        "Generate a cloud deployment architecture diagram. Style: Isometric 3D view. Components: Users → CDN → Load Balancer → Kubernetes Cluster → RDS → S3. Color scheme: White background with blue and orange elements. NO TEXT in the image."
+      ]
+    },
+
+    "concept": {
+      "id": "concept",
+      "name": "概念图模板",
+      "use_for": ["抽象概念", "价值主张", "愿景展示", "核心理念"],
+      "content_source_type": "B",
+
+      "base_prompt": "Generate a conceptual illustration for {CONCEPT_NAME}.",
+
+      "visual_metaphors": {
+        "flowing_data": {
+          "description": "数据流动",
+          "prompt_suffix": "Visual metaphor: Flowing data streams, particles moving through space, representing information flow"
+        },
+        "connected_network": {
+          "description": "连接网络",
+          "prompt_suffix": "Visual metaphor: Interconnected nodes and edges, representing relationships and connections"
+        },
+        "growth_tree": {
+          "description": "成长之树",
+          "prompt_suffix": "Visual metaphor: A growing tree with branches representing expansion and development"
+        },
+        "bridge": {
+          "description": "桥梁连接",
+          "prompt_suffix": "Visual metaphor: A bridge connecting two sides, representing transformation and progress"
+        },
+        "lightbulb": {
+          "description": "灵感灯泡",
+          "prompt_suffix": "Visual metaphor: Glowing lightbulb with radiating ideas, representing innovation and insight"
+        },
+        "puzzle": {
+          "description": "拼图组合",
+          "prompt_suffix": "Visual metaphor: Puzzle pieces coming together, representing integration and completeness"
+        }
+      },
+
+      "style_variations": {
+        "minimalist": "Style: Modern minimalist with clean geometric shapes and ample white space",
+        "cyberpunk": "Style: Cyberpunk aesthetic with neon colors, futuristic elements and dark background",
+        "corporate": "Style: Professional corporate illustration with soft gradients and polished look",
+        "artistic": "Style: Artistic interpretation with watercolor or digital painting effects"
+      },
+
+      "example_prompts": [
+        "Generate a conceptual illustration for Digital Transformation. Visual metaphor: A bridge connecting traditional office to futuristic digital workspace. Style: Modern minimalist. Aspect ratio: default to 16:9 for slides, but adjust when the page format requires. NO TEXT in the image.",
+        "Generate a conceptual illustration for AI-Powered Innovation. Visual metaphor: Glowing lightbulb with neural network patterns inside, radiating ideas. Style: Cyberpunk aesthetic. Aspect ratio: default to 16:9 for slides, but adjust when the page format requires. NO TEXT in the image."
+      ]
+    },
+
+    "flowchart": {
+      "id": "flowchart",
+      "name": "流程图模板",
+      "use_for": ["业务流程", "工作流", "决策流程", "操作步骤"],
+      "content_source_type": "C2",
+
+      "base_prompt": "Generate a {PROCESS_NAME} flowchart in {STYLE} style.",
+
+      "direction_options": {
+        "horizontal": "Flow direction: Left to right horizontal flow",
+        "vertical": "Flow direction: Top to bottom vertical flow",
+        "circular": "Flow direction: Circular or cyclical flow"
+      },
+
+      "step_templates": {
+        "linear": "Steps: {STEP1} → {STEP2} → {STEP3} → {STEP4}",
+        "branching": "Steps: Start → Decision point branching to {PATH_A} and {PATH_B} → Merge → End",
+        "iterative": "Steps: Start → Process → Check → Loop back if needed → Complete"
+      },
+
+      "style_variations": {
+        "clean": "Style: Clean and modern with rounded rectangles and smooth connectors",
+        "technical": "Style: Technical diagram with precise shapes and data flow indicators",
+        "playful": "Style: Playful with rounded shapes, icons and friendly colors"
+      },
+
+      "example_prompts": [
+        "Generate a User Onboarding flowchart in clean modern style. Flow direction: Left to right. Steps: Sign Up → Email Verification → Profile Setup → Tutorial → Dashboard. NO TEXT in the image, leave numbered areas for PPT annotation.",
+        "Generate an Order Processing flowchart in technical style. Flow direction: Vertical. Steps: Order Received → Inventory Check → Payment Processing → Shipping → Delivery Confirmation. Include decision branches. NO TEXT in the image."
+      ]
+    },
+
+    "dashboard": {
+      "id": "dashboard",
+      "name": "仪表盘模板",
+      "use_for": ["数据展示", "KPI 展示", "监控面板", "分析报表"],
+      "content_source_type": "C4",
+
+      "base_prompt": "Generate a data dashboard background for {DASHBOARD_NAME}.",
+
+      "layout_types": {
+        "metrics_row": "Layout: Top row with 4 metric cards, below is a large chart area",
+        "balanced": "Layout: Left sidebar with metrics, main area with charts and graphs",
+        "full_chart": "Layout: Full-width chart area with subtle grid background"
+      },
+
+      "style_variations": {
+        "dark_analytics": "Style: Dark theme analytics dashboard with glowing metrics and subtle grid lines",
+        "light_modern": "Style: Light modern dashboard with card-based layout and soft shadows",
+        "minimal": "Style: Minimal dashboard with clean lines and focus on data visualization"
+      },
+
+      "example_prompts": [
+        "Generate a data dashboard background for Business Analytics. Layout: Top row with metric card areas, main area for charts. Style: Dark theme with blue accents. NO TEXT, NO NUMBERS, only placeholder areas for PPT to add data.",
+        "Generate a KPI dashboard background. Layout: 2x2 grid of card areas with icon placeholders. Style: Light modern with subtle gradients. NO TEXT in the image."
+      ]
+    },
+
+    "timeline": {
+      "id": "timeline",
+      "name": "时间线模板",
+      "use_for": ["产品路线图", "项目计划", "发展历程", "里程碑展示"],
+      "content_source_type": "A",
+
+      "base_prompt": "Generate a timeline illustration for {TIMELINE_NAME}.",
+
+      "layout_types": {
+        "horizontal": "Layout: Horizontal timeline with milestones left to right",
+        "vertical": "Layout: Vertical timeline with milestones top to bottom",
+        "road": "Layout: Road or path style with milestones as stops"
+      },
+
+      "style_variations": {
+        "clean": "Style: Clean horizontal line with circular milestone markers",
+        "3d_road": "Style: 3D perspective road with milestone signs",
+        "nature": "Style: Tree growth style with branches representing time periods"
+      },
+
+      "example_prompts": [
+        "Generate a timeline illustration for Product Roadmap 2024. Layout: Horizontal timeline with 4 quarterly milestone areas. Style: Clean modern with gradient line. NO TEXT, only placeholder shapes for PPT labels.",
+        "Generate a company history timeline. Layout: Vertical path style with 5 milestone areas. Style: Professional with connected nodes. NO TEXT in the image."
+      ]
+    },
+
+    "comparison": {
+      "id": "comparison",
+      "name": "对比图模板",
+      "use_for": ["方案对比", "优劣势分析", "竞品对比", "前后对比"],
+      "content_source_type": "A",
+
+      "base_prompt": "Generate a comparison illustration for {COMPARISON_NAME}.",
+
+      "layout_types": {
+        "two_column": "Layout: Two side-by-side columns for comparison",
+        "vs_center": "Layout: Central VS divider with elements on both sides",
+        "before_after": "Layout: Before/After transformation style"
+      },
+
+      "style_variations": {
+        "balanced": "Style: Balanced design with equal visual weight on both sides",
+        "contrast": "Style: High contrast design highlighting differences",
+        "transformation": "Style: Transformation style showing change/evolution"
+      },
+
+      "example_prompts": [
+        "Generate a comparison illustration for Traditional vs Cloud Solutions. Layout: Two side-by-side areas with central divider. Style: Balanced design with blue and green color zones. NO TEXT in the image.",
+        "Generate a before/after transformation illustration. Layout: Left side showing old/conventional, right side showing new/modern with transition arrow. Style: Transformation with light effects. NO TEXT in the image."
+      ]
+    },
+
+    "team": {
+      "id": "team",
+      "name": "团队介绍模板",
+      "use_for": ["团队成员", "组织架构", "角色分工"],
+      "content_source_type": "C3",
+
+      "base_prompt": "Generate a team display layout for {TEAM_NAME}.",
+
+      "layout_types": {
+        "grid": "Layout: Equal-sized grid layout for team member portraits",
+        "hierarchical": "Layout: Hierarchical layout with leader at top",
+        "circular": "Layout: Circular arrangement with center focus"
+      },
+
+      "style_variations": {
+        "professional": "Style: Professional corporate style with clean frames",
+        "modern": "Style: Modern with geometric shapes and gradient backgrounds",
+        "minimal": "Style: Minimal with focus on portrait placeholders"
+      },
+
+      "example_prompts": [
+        "Generate a team display layout for Executive Team. Layout: 2x2 grid with portrait placeholder areas. Style: Professional with subtle frames. NO TEXT, NO FACES, only placeholder areas for photos.",
+        "Generate an organization chart background. Layout: Hierarchical with top leader area and team member areas below. Style: Modern with connected lines. NO TEXT in the image."
+      ]
+    },
+
+    "feature_highlight": {
+      "id": "feature_highlight",
+      "name": "功能亮点模板",
+      "use_for": ["产品功能", "核心特性", "优势展示"],
+      "content_source_type": "C1",
+
+      "base_prompt": "Generate a feature highlight illustration for {FEATURE_NAME}.",
+
+      "layout_types": {
+        "center_focus": "Layout: Central hero element with surrounding feature indicators",
+        "card_grid": "Layout: Grid of feature card areas",
+        "icon_list": "Layout: Vertical list with icon areas and content placeholders"
+      },
+
+      "style_variations": {
+        "tech": "Style: Tech-focused with glowing elements and circuit patterns",
+        "friendly": "Style: Friendly and approachable with rounded shapes",
+        "premium": "Style: Premium with metallic accents and elegant gradients"
+      },
+
+      "example_prompts": [
+        "Generate a feature highlight illustration for AI Assistant Features. Layout: Central AI brain icon area with 4 surrounding feature indicator areas. Style: Tech-focused with blue glow. NO TEXT in the image.",
+        "Generate a product features grid. Layout: 2x2 grid with icon placeholder and content area for each cell. Style: Premium with gradient backgrounds. NO TEXT in the image."
+      ]
+    }
+  },
+
+  "universal_rules": {
+    "no_text": "NO TEXT in the image, NO letters, NO words, NO numbers",
+    "placeholder_areas": "Leave numbered placeholder areas (①②③④⑤) for PPT to add text labels",
+    "aspect_ratio": "Aspect ratio: default to 16:9 for standard presentation slides; adjust to 1:1, 9:16 or other ratios when the content format requires",
+    "resolution": "High resolution: at least 1920x1080 pixels",
+    "style_consistency": "Maintain consistent style across all AI-generated images in the same presentation"
+  },
+
+  "style_presets": {
+    "tech_dark": {
+      "name": "科技深色",
+      "colors": ["#1E3A5F", "#0D1B2A", "#00B4D8", "#FFD60A"],
+      "description": "深蓝/黑背景 + 青/金色强调"
+    },
+    "tech_light": {
+      "name": "科技浅色",
+      "colors": ["#FFFFFF", "#F8FAFC", "#1E3A8A", "#0D9488"],
+      "description": "白/浅灰背景 + 深蓝/青色元素"
+    },
+    "premium_dark": {
+      "name": "高级深色",
+      "colors": ["#1A1A2E", "#16213E", "#E94560", "#FFD700"],
+      "description": "深紫/黑背景 + 红/金色强调"
+    },
+    "friendly_light": {
+      "name": "友好浅色",
+      "colors": ["#FFFFFF", "#F0FDF4", "#2D3436", "#00B894"],
+      "description": "白/浅绿背景 + 灰/绿色元素"
+    }
+  }
+}

@@ -13,12 +13,15 @@
 │           ├── 01-preview.png
 │           ├── 02-workflow.png
 │           ├── 03-result.png
+│           ├── cover-wechat.jpg
+│           ├── cover-jike.jpg
+│           ├── cover-twitter.jpg
 │           └── ...
 └── Output/                    # 生成内容
     ├── _drafts/
     │   └── 04_draft.md        # 图片已嵌入对应章节
     ├── wechat/
-    │   ├── article.md         # 保持 Medias/images/ 路径
+    │   ├── article.md         # 阶段6清洗后的最终版本
     │   ├── metadata.yaml      # 平台元数据（YAML格式）
     │   └── images/            # 复制的图片文件
     └── xhs/
@@ -29,6 +32,21 @@
 ```
 
 ## 🔄 完整工作流程
+
+### 平台级封面图规则（2026-03 新增）
+
+封面图不再统一使用单一 `cover.jpg`，而是改为平台专属源文件：
+
+| 平台 | Materials 源文件 | 正文占位形式 | 默认比例 |
+|-----|------------------|--------------|----------|
+| wechat | `cover-wechat.jpg` | `inline_markdown` | `21:9` |
+| jike | `cover-jike.jpg` | `header_comment` | `1:1` |
+| twitter | `cover-twitter.jpg` | `header_comment` | `4:5` |
+
+说明：
+- `inline_markdown`：封面图占位直接写在文章头部。
+- `header_comment`：只在文章头部保留 `<!-- AI封面图 ... -->` 注释，不往正文插图。
+- 输出到 `Output/{platform}/images/` 时统一重命名为 `cover.jpg` 或 `cover.{ext}`，便于发布工具读取。
 
 ### 阶段3：写作剧本生成
 
@@ -52,7 +70,7 @@ python3 ~/.cursor/skills/content-creator/scripts/scan_images.py [工作区路径
 2. `Medias/images/02-workflow.png` (序号: 02) [关键词: workflow]
 3. `Medias/images/03-result.png` (序号: 03) [关键词: result]
 4. `Medias/images/04-detail.png` (序号: 04) [关键词: detail]
-5. `Medias/images/cover.jpg` [关键词: cover]
+5. `Medias/images/cover-wechat.jpg` [关键词: cover-wechat]
 ```
 
 **⚠️ 关键规则**：
@@ -122,7 +140,7 @@ for each 章节:
 配置完成后，你的工作效率会提升不少...
 ```
 
-> ⚠️ 图注只写在 alt 文本中，不要另起 `*▲ ...*` 行（markdown-to-wechat 会自动将 alt 渲染为 figcaption，另写会重复）
+> ⚠️ 图注只写在 `caption` 中，不要把 AI 生图提示词直接写进 alt，也不要另起 `*▲ ...*` 行（markdown-to-wechat 会自动将最终 alt 渲染为 figcaption，另写会重复）
 
 **禁止做法**❌：
 
@@ -139,26 +157,26 @@ for each 章节:
 
 ### 阶段6：多平台适配
 
-#### 步骤6.3：图片路径处理
+#### 步骤6.3：图片路径处理与发布稿清洗
 
 | 平台 | 路径格式 | 说明 |
 |-----|---------|------|
-| **微信公众号** | `Medias/images/xxx.png` ⭐ | 保持原路径，供 markdown-to-wechat 上传 |
-| **小红书** | `./images/xxx.png` | 复制到 Output/xhs/images/ |
-| **知乎** | `./images/xxx.png` | 复制到 Output/zhihu/images/ |
+| **图文混排型平台** | `images/xxx.png` ⭐ | 通过 `sanitize_output_markdown.py` 从 draft 统一转换 |
+| **图文分离型平台** | 无正文图片语法 | `article.md` 通过脚本删除正文图片占位 |
+| **视觉优先平台的 image_plan.md** | `Materials/Medias/images/xxx.png` | 保留为图片执行主文件，不在此阶段清理截图指引 |
 
-**微信公众号特殊处理**：
+**推荐工作流**：
 
 ```markdown
-# Output/wechat/article.md 中保持原路径
-![主界面设计](Medias/images/01-preview.png)
+# Output/wechat/article.md 中使用相对路径
+![主界面设计](images/01-preview.png)
 ```
 
-**原因**：markdown-to-wechat skill 会自动：
-1. 检测 `Medias/images/` 路径
-2. 调用 markdown-image-uploader 上传到阿里云 OSS
-3. 替换为 CDN URL
-4. 生成最终 HTML
+**原因**：`content-creator` 在阶段6默认先复制图片，再调用 `sanitize_output_markdown.py`：
+1. 删除 `> 💡 **截图指引**：...` 这类作者辅助标记
+2. 将 `Medias/images/` 或 `Materials/Medias/images/` 统一改写为 `images/`
+3. 输出更干净的 `Output/{platform}/article.md`
+4. 再交给 `markdown-to-wechat` 或发布工具继续处理
 
 ---
 
@@ -206,7 +224,7 @@ python3 ~/.cursor/skills/content-creator/scripts/scan_images.py /path/to/workspa
 |-------|-----|-------|---------|
 | `01-preview.png` | 1 | preview | 第1章节 |
 | `02-workflow.png` | 2 | workflow | 第2章节（流程相关） |
-| `cover.jpg` | null | cover | 开篇封面 |
+| `cover-wechat.jpg` | null | cover-wechat | 微信公众号头部封面 |
 | `screenshot-03.png` | 3 | screenshot | 第3章节 |
 
 ---
@@ -226,14 +244,16 @@ python3 ~/.cursor/skills/content-creator/scripts/scan_images.py /path/to/workspa
 - [ ] 每张图片都紧跟相关描述段落？
 - [ ] 所有扫描到的图片都已使用（没有遗漏）？
 - [ ] 图片路径格式正确（`Medias/images/xxx.png`，以实际扫描到的扩展名为准）？
-- [ ] 每张图片都有 alt 文本（图注说明，10-20字）？
+- [ ] 每张图片都有 `caption`（最终图注，推荐 4-10 个字）？
 - [ ] 没有另起 `*▲ ...*` 斜体行？
 
 ### 阶段6检查（多平台适配）
 
-- [ ] 微信公众号版本保持 `Medias/images/` 路径？
+- [ ] 阶段6 已优先调用 `sanitize_output_markdown.py`？
+- [ ] 图文混排型平台的 `article.md` 已转换为 `images/xxx.png` 路径？
 - [ ] 其他平台已复制图片到对应目录？
-- [ ] 图片路径已根据平台规则调整？
+- [ ] `article.md` 中已移除 `> 💡 **截图指引**：...`？
+- [ ] 图文分离型平台的 `article.md` 已移除正文图片占位？
 
 ---
 
@@ -281,7 +301,7 @@ Agent 应该：
 **A**: 推荐使用以下格式：
 - `01-preview.png` - 带序号，方便自动匹配章节
 - `02-workflow.png` - 关键词描述图片内容
-- `cover.jpg` - 特殊用途图片用描述性名称
+- `cover-wechat.jpg` - 平台封面源图使用 `cover-{platform}.jpg` 形式命名
 
 **避免**：
 - `IMG_1234.png` - 无意义命名

@@ -1,7 +1,7 @@
 {
-  "version": "2.0.0",
-  "last_updated": "2026-02-04",
-  "changelog": "基于2026年最新平台规则、真实数据调研和超级峰平台表现优化",
+  "version": "2.4.0",
+  "last_updated": "2026-03-02",
+  "changelog": "新增 long_form / short_form / visual_first 三条创作链路路由，并统一三风格候选草稿配置与视觉优先图片主文件规则",
   "platforms": [
     {
       "id": "wechat",
@@ -11,6 +11,7 @@
       "length": "1500-3000字（推荐），短文800字可，深度内容可达5000字",
       "title_length": "20-30字",
       "title_prefix": "",
+      "workflow_route": "long_form",
       "digest_max_chars": 40,
       "digest_rules": "从正文提炼核心价值，回答「读者为什么要点开」；不重复标题；不用「本文将…」等模板句式；与文章tone一致",
       "format_rules": [
@@ -24,7 +25,30 @@
         "结尾行动号召",
         "原创文章需≥300字（不含标点和空格）"
       ],
-      "humanization": "错别字≤3，保留专业术语，增加真实案例和个人见解，避免AI痕迹（如过度标准化、一键生成感），仅禁止使用破折号（——）、冒号（：）、双引号（""）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，不要过度分行，采用自然段的形式输出，避免「不是...而是...」等对立转折句式",
+      "humanization": "错别字≤3，保留专业术语，增加真实案例和个人见解，避免AI痕迹（如过度标准化、一键生成感），仅禁止使用破折号（——）、冒号（：）、双引号（\\\"\\\"）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，不要过度分行，采用自然段的形式输出，避免「不是...而是...」等对立转折句式",
+      "cover_policy": {
+        "enabled": true,
+        "phase": "phase_1",
+        "placeholder_mode": "inline_markdown",
+        "placement": "article_head",
+        "generation_mode": "deferred_ai",
+        "default_aspect_ratio": "21:9",
+        "recommended_size": "900x383",
+        "safe_area": "center",
+        "source_filename": "cover-wechat.jpg",
+        "output_filename": "cover.jpg"
+      },
+      "draft_variant_library": {
+        "enabled": true,
+        "library_path": "references/style-libraries/core/",
+        "fixed_styles": [
+          "technical-expert",
+          "storytelling",
+          "sharp-humor"
+        ],
+        "variant_count": 3,
+        "mode": "single_platform_variants"
+      },
       "content_requirements": {
         "originality": "原创度高，深度与原创性并重",
         "anti_ai": "2026新规严打AI一键生成内容，需体现真实思考和经验",
@@ -47,6 +71,7 @@
       "length": "视频1-3分钟（主流），最长支持60分钟；标题20-30字；描述50-100字",
       "title_length": "20-30字",
       "title_prefix": "",
+      "workflow_route": "visual_first",
       "format_rules": [
         "视频长度1-3分钟为主流（最长60分钟）",
         "标题20-30字",
@@ -56,7 +81,7 @@
         "支持直播和短视频",
         "避免过度剪辑和特效"
       ],
-      "humanization": "真实生活化表达，避免过度剪辑和特效，专业但接地气，仅禁止使用破折号（——）、冒号（：）、双引号（""）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，避免「不是...而是...」等对立转折句式",
+      "humanization": "真实生活化表达，避免过度剪辑和特效，专业但接地气，仅禁止使用破折号（——）、冒号（：）、双引号（\\\"\\\"）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，避免「不是...而是...」等对立转折句式",
       "ecosystem_advantage": {
         "growth_rate": "2024年活跃创作者同比增长62%，增速最快",
         "user_stickiness": "15%用户驻足超1小时",
@@ -79,6 +104,7 @@
       "length": "短笔记100-300字，长笔记600-1000字（正文上限1000字）",
       "title_length": "20-30字",
       "title_prefix": "【体验】/【避坑】等",
+      "workflow_route": "visual_first",
       "format_rules": [
         "钩子开头（反差/悬念/数字）",
         "3-5行分段",
@@ -89,7 +115,30 @@
         "强调'真实体验'和'干货'",
         "#话题标签"
       ],
-      "humanization": "每200字≥1错别字，真实体验分享，少用公式化过渡词（避免'首先''其次'）。标点规则：正常使用逗号（，）、句号（。）、感叹号（！）、问号（？）、顿号（、）等基础标点；仅禁止使用破折号（——）、冒号（：）、双引号（""）这三种偏正式的标点。不要过度分行，采用自然段的形式输出，避免「不是...而是...」等对立转折句式",
+      "humanization": "每200字≥1错别字，真实体验分享，少用公式化过渡词（避免'首先''其次'）。标点规则：正常使用逗号（，）、句号（。）、感叹号（！）、问号（？）、顿号（、）等基础标点；仅禁止使用破折号（——）、冒号（：）、双引号（\\\"\\\"）这三种偏正式的标点。不要过度分行，采用自然段的形式输出，避免「不是...而是...」等对立转折句式",
+      "cover_policy": {
+        "enabled": false,
+        "phase": "phase_2",
+        "placeholder_mode": "image_plan_cover_slot",
+        "placement": "image_plan_head",
+        "generation_mode": "deferred_ai",
+        "default_aspect_ratio": "3:4",
+        "recommended_size": "1080x1440",
+        "safe_area": "center",
+        "source_filename": "cover-xhs.jpg",
+        "output_filename": "cover.jpg"
+      },
+      "draft_variant_library": {
+        "enabled": true,
+        "library_path": "references/style-libraries/core/",
+        "fixed_styles": [
+          "technical-expert",
+          "storytelling",
+          "sharp-humor"
+        ],
+        "variant_count": 3,
+        "mode": "single_platform_variants"
+      },
       "content_requirements": {
         "originality": "原创度≥60%（低于60%权重降低）",
         "min_length": "短笔记不得少于100字",
@@ -121,6 +170,7 @@
       "tone": "专业、逻辑清晰，适当幽默，数据驱动、有理有据",
       "length": "1000-5000字（最优1000-2500字），短回答≥100字，长文章可达数万字",
       "title_prefix": "",
+      "workflow_route": "long_form",
       "format_rules": [
         "四段式结构：开篇吸引（100-200字）→核心内容（2-4观点，每个观点需数据/案例支撑）→实用价值（具体可执行方法）→结尾升华（总结要点或启发）",
         "提出问题/观点",
@@ -130,7 +180,30 @@
         "使用类比法解释复杂概念",
         "空行优化排版"
       ],
-      "humanization": "错别字≤2，通俗易懂（用类比法解释复杂概念），保持引用准确，以分享者而非说教者姿态，仅禁止使用破折号（——）、冒号（：）、双引号（""）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，不要过度分行，采用自然段的形式输出，避免「不是...而是...」等对立转折句式",
+      "humanization": "错别字≤2，通俗易懂（用类比法解释复杂概念），保持引用准确，以分享者而非说教者姿态，仅禁止使用破折号（——）、冒号（：）、双引号（\\\"\\\"）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，不要过度分行，采用自然段的形式输出，避免「不是...而是...」等对立转折句式",
+      "cover_policy": {
+        "enabled": false,
+        "phase": "phase_2",
+        "placeholder_mode": "inline_markdown",
+        "placement": "article_head",
+        "generation_mode": "deferred_ai",
+        "default_aspect_ratio": "16:9",
+        "recommended_size": "1280x720",
+        "safe_area": "center",
+        "source_filename": "cover-zhihu.jpg",
+        "output_filename": "cover.jpg"
+      },
+      "draft_variant_library": {
+        "enabled": true,
+        "library_path": "references/style-libraries/core/",
+        "fixed_styles": [
+          "technical-expert",
+          "storytelling",
+          "sharp-humor"
+        ],
+        "variant_count": 3,
+        "mode": "single_platform_variants"
+      },
       "content_types": [
         "职场经验",
         "健身减肥",
@@ -148,6 +221,7 @@
       "tone": "犀利、轻幽默，可用梗和网络用语，第一人称分享，专业但不刻板",
       "length": "≤300字（短平快，信息密度高）",
       "title_prefix": "",
+      "workflow_route": "short_form",
       "format_rules": [
         "≤3段",
         "链接贴在段落",
@@ -155,7 +229,30 @@
         "高质量讨论，同好社区氛围",
         "支持点赞、评论、转发"
       ],
-      "humanization": "偶尔拼错外来词营造口语感，强调真实体验和思考，仅禁止使用破折号（——）、冒号（：）、双引号（""）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，不要过度分行，采用自然段的形式输出，避免「不是...而是...」等对立转折句式",
+      "humanization": "偶尔拼错外来词营造口语感，强调真实体验和思考，仅禁止使用破折号（——）、冒号（：）、双引号（\\\"\\\"）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，不要过度分行，采用自然段的形式输出，避免「不是...而是...」等对立转折句式",
+      "cover_policy": {
+        "enabled": true,
+        "phase": "phase_1",
+        "placeholder_mode": "header_comment",
+        "placement": "article_head",
+        "generation_mode": "deferred_ai",
+        "default_aspect_ratio": "1:1",
+        "recommended_size": "1080x1080",
+        "safe_area": "center",
+        "source_filename": "cover-jike.jpg",
+        "output_filename": "cover.jpg"
+      },
+      "draft_variant_library": {
+        "enabled": true,
+        "library_path": "references/style-libraries/core/",
+        "fixed_styles": [
+          "technical-expert",
+          "storytelling",
+          "sharp-humor"
+        ],
+        "variant_count": 3,
+        "mode": "single_platform_variants"
+      },
       "community_features": {
         "content_form": "短平快、信息密度高",
         "interaction": "高质量讨论、专业交流",
@@ -169,6 +266,7 @@
       "tone": "简洁、有趣，使用hashtag，直接、专业",
       "length": "≤280字符（链接固定占23字符，Emoji通常占2字符）",
       "title_prefix": "",
+      "workflow_route": "short_form",
       "format_rules": [
         "7种高效格式：直接陈述（单一观点）/列表（提升可读性）/笑点（设置+释放）/提问（引发回复）/故事（钩子+背景+教训+CTA）/观点（强烈立场）/框架（结构化方法）",
         "线程化写作（每条280字符独立，可连续多条）",
@@ -177,7 +275,30 @@
         "链接固定占23字符",
         "一条推文一个核心观点"
       ],
-      "humanization": "适度缩写与俚语，简洁直接，不拖泥带水，适当使用表情符号，仅禁止使用破折号（——）、冒号（：）、双引号（""）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，不要过度分行，采用自然段的形式输出，避免「不是...而是...」等对立转折句式",
+      "humanization": "适度缩写与俚语，简洁直接，不拖泥带水，适当使用表情符号，仅禁止使用破折号（——）、冒号（：）、双引号（\\\"\\\"）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，不要过度分行，采用自然段的形式输出，避免「不是...而是...」等对立转折句式",
+      "cover_policy": {
+        "enabled": true,
+        "phase": "phase_1",
+        "placeholder_mode": "header_comment",
+        "placement": "article_head",
+        "generation_mode": "deferred_ai",
+        "default_aspect_ratio": "4:5",
+        "recommended_size": "1440x1800",
+        "safe_area": "center",
+        "source_filename": "cover-twitter.jpg",
+        "output_filename": "cover.jpg"
+      },
+      "draft_variant_library": {
+        "enabled": true,
+        "library_path": "references/style-libraries/core/",
+        "fixed_styles": [
+          "technical-expert",
+          "storytelling",
+          "sharp-humor"
+        ],
+        "variant_count": 3,
+        "mode": "single_platform_variants"
+      },
       "content_tips": {
         "format_matters": "格式决定参与度，好格式=钩子+清晰+情绪共鸣",
         "thread_strategy": "长内容拆分为线程，每条独立完整",
@@ -193,6 +314,7 @@
       "length": "最优100-300字（核心信息），中长500-1500字，上限3000字",
       "best_practice": "前140字包含核心信息（移动端'See more'阈值，决定点击率）",
       "title_prefix": "",
+      "workflow_route": "long_form",
       "format_rules": [
         "前140字包含核心价值陈述（移动端'See more'阈值，决定点击率）",
         "短帖1-2段落（100-300字）：快速更新、问题、公告",
@@ -205,7 +327,18 @@
         "含案例与数据指标",
         "纵向视频或图文"
       ],
-      "humanization": "有限Emoji，强调实证与真实故事，鼓励评论互动（评论权重>点赞），适当分享个人经验，仅禁止使用破折号（——）、冒号（：）、双引号（""）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，不要过度分行，采用自然段的形式输出，避免「不是...而是...」等对立转折句式",
+      "humanization": "有限Emoji，强调实证与真实故事，鼓励评论互动（评论权重>点赞），适当分享个人经验，仅禁止使用破折号（——）、冒号（：）、双引号（\\\"\\\"）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，不要过度分行，采用自然段的形式输出，避免「不是...而是...」等对立转折句式",
+      "draft_variant_library": {
+        "enabled": true,
+        "library_path": "references/style-libraries/core/",
+        "fixed_styles": [
+          "technical-expert",
+          "storytelling",
+          "sharp-humor"
+        ],
+        "variant_count": 3,
+        "mode": "single_platform_variants"
+      },
       "engagement_tips": {
         "golden_hour": "发布后第1小时至关重要，决定扩散范围",
         "comment_priority": "评论权重>点赞，鼓励对话而非反应",
@@ -222,6 +355,7 @@
       "length": "视频标题15-20字，视频描述50-100字，视频时长15秒-3分钟",
       "title_length": "15-20字",
       "title_prefix": "",
+      "workflow_route": "visual_first",
       "format_rules": [
         "首句悬念/痛点（前3秒抓住注意力）",
         "强情绪词",
@@ -230,7 +364,18 @@
         "视频标题15-20字",
         "视频描述50-100字"
       ],
-      "humanization": "口语缩写与网络流行语，情绪价值优先，仅禁止使用破折号（——）、冒号（：）、双引号（""）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，不要过度分行，采用自然段的形式输出，避免「不是...而是...」等对立转折句式",
+      "humanization": "口语缩写与网络流行语，情绪价值优先，仅禁止使用破折号（——）、冒号（：）、双引号（\\\"\\\"）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，不要过度分行，采用自然段的形式输出，避免「不是...而是...」等对立转折句式",
+      "draft_variant_library": {
+        "enabled": true,
+        "library_path": "references/style-libraries/core/",
+        "fixed_styles": [
+          "technical-expert",
+          "storytelling",
+          "sharp-humor"
+        ],
+        "variant_count": 3,
+        "mode": "single_platform_variants"
+      },
       "violation_rules": [
         "禁止绝对化用语（最好/第一/唯一/全网最XX/100%/国家级/纯天然/无副作用等）",
         "禁止诱导互动行为（虚假功能、诱骗完播等）",
@@ -260,6 +405,7 @@
       "length": "标题20-30字（≤30字），简介60-200字，视频5-15分钟为主流",
       "title_length": "20-30字",
       "title_prefix": "",
+      "workflow_route": "long_form",
       "format_rules": [
         "标题20-30字，可以带梗",
         "简介包含适用人群+学习目标+课程重点+课程亮点",
@@ -270,7 +416,18 @@
         "强调社区归属感",
         "分P标题简洁明了"
       ],
-      "humanization": "弹幕口吻+圈内梗，二次元文化元素，轻松幽默，仅禁止使用破折号（——）、冒号（：）、双引号（""）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，不要过度分行，采用自然段的形式输出，避免「不是...而是...」等对立转折句式",
+      "humanization": "弹幕口吻+圈内梗，二次元文化元素，轻松幽默，仅禁止使用破折号（——）、冒号（：）、双引号（\\\"\\\"）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，不要过度分行，采用自然段的形式输出，避免「不是...而是...」等对立转折句式",
+      "draft_variant_library": {
+        "enabled": true,
+        "library_path": "references/style-libraries/core/",
+        "fixed_styles": [
+          "technical-expert",
+          "storytelling",
+          "sharp-humor"
+        ],
+        "variant_count": 3,
+        "mode": "single_platform_variants"
+      },
       "content_preferences": [
         "游戏",
         "数码",
@@ -293,6 +450,7 @@
       "length": "短Caption<150字（快速滚动），中长Caption 2-3段/300-500字（推荐），长Caption可达2200字",
       "best_practice": "2026年算法偏好：长Caption提升停留时间和参与度",
       "title_prefix": "",
+      "workflow_route": "visual_first",
       "format_rules": [
         "首句强钩子（前1-2句决定是否展开'...more'）",
         "明确CTA（行动号召）",
@@ -304,7 +462,18 @@
         "轮换hashtag集避免重复",
         "高质量图片、尺寸适配移动屏幕"
       ],
-      "humanization": "中英文混排、口语化缩写，生活化表达，真实感优先，仅禁止使用破折号（——）、冒号（：）、双引号（""）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，适当使用换行增加可读性，避免「不是...而是...」等对立转折句式",
+      "humanization": "中英文混排、口语化缩写，生活化表达，真实感优先，仅禁止使用破折号（——）、冒号（：）、双引号（\\\"\\\"）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，适当使用换行增加可读性，避免「不是...而是...」等对立转折句式",
+      "draft_variant_library": {
+        "enabled": true,
+        "library_path": "references/style-libraries/core/",
+        "fixed_styles": [
+          "technical-expert",
+          "storytelling",
+          "sharp-humor"
+        ],
+        "variant_count": 3,
+        "mode": "single_platform_variants"
+      },
       "hashtag_strategy": {
         "quantity": "3-5个（2026官方建议，替代旧的'最大化到30个'策略）",
         "placement": "放在Caption中（而非评论区，提升发现率）",
@@ -325,6 +494,7 @@
       "length": "视频标题15-20字，视频时长1-3分钟",
       "title_length": "15-20字",
       "title_prefix": "",
+      "workflow_route": "visual_first",
       "format_rules": [
         "视频标题15-20字",
         "视频时长1-3分钟",
@@ -332,7 +502,18 @@
         "接地气的表达方式",
         "支持直播带货和教学"
       ],
-      "humanization": "接地气、口语化、真诚实用，仅禁止使用破折号（——）、冒号（：）、双引号（""）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，避免「不是...而是...」等对立转折句式",
+      "humanization": "接地气、口语化、真诚实用，仅禁止使用破折号（——）、冒号（：）、双引号（\\\"\\\"）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，避免「不是...而是...」等对立转折句式",
+      "draft_variant_library": {
+        "enabled": true,
+        "library_path": "references/style-libraries/core/",
+        "fixed_styles": [
+          "technical-expert",
+          "storytelling",
+          "sharp-humor"
+        ],
+        "variant_count": 3,
+        "mode": "single_platform_variants"
+      },
       "content_suggestions": [
         "普通人也能学会的AI编程（降低门槛）",
         "我用AI做了个免费工具，帮你...（实用工具推荐）",
@@ -351,6 +532,7 @@
       "tone": "简洁、有趣、话题性强",
       "length": "140字为主，支持长文，配图1-9张",
       "title_prefix": "",
+      "workflow_route": "short_form",
       "format_rules": [
         "140字为主要形式",
         "支持长文发布",
@@ -359,7 +541,18 @@
         "追热点、发布快讯",
         "互动性强"
       ],
-      "humanization": "简洁有趣，话题性强，适当使用表情符号，仅禁止使用破折号（——）、冒号（：）、双引号（""）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，避免「不是...而是...」等对立转折句式",
+      "humanization": "简洁有趣，话题性强，适当使用表情符号，仅禁止使用破折号（——）、冒号（：）、双引号（\\\"\\\"）这三种偏正式的标点，正常使用逗号、句号、感叹号、问号等基础标点，避免「不是...而是...」等对立转折句式",
+      "draft_variant_library": {
+        "enabled": true,
+        "library_path": "references/style-libraries/core/",
+        "fixed_styles": [
+          "technical-expert",
+          "storytelling",
+          "sharp-humor"
+        ],
+        "variant_count": 3,
+        "mode": "single_platform_variants"
+      },
       "content_suggestions": [
         "刚用AI做了个App，结果上榜了！[图片]",
         "2024年最值得关注的5个AI编程工具",
@@ -382,6 +575,7 @@
     "length": "推荐字数/篇幅",
     "title_length": "标题建议字数",
     "title_prefix": "可选前缀/标签",
+    "workflow_route": "平台所属创作链路：long_form / short_form / visual_first",
     "format_rules": "平台排版与标签要点（数组）",
     "humanization": "错别字或口语化策略，避免AI痕迹",
     "best_practice": "最佳实践说明（可选）",

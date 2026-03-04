@@ -1,0 +1,380 @@
+{
+  "version": "2.0",
+  "description": "PPT 演示场景规则库，定义不同演示类型的专业规范",
+  "updated": "2026-02-27",
+
+  "scenarios": {
+    "tech-report": {
+      "id": "tech-report",
+      "display_name": "技术汇报",
+      "description": "面向技术团队/技术领导的专业技术演示",
+      "audience": ["技术团队", "技术领导", "研发管理者"],
+      "tone": "专业、数据驱动、逻辑清晰",
+
+      "page_config": {
+        "recommended_count": "15-25",
+        "time_per_slide": "2-3分钟",
+        "min_font_size": 18
+      },
+
+      "structure_template": {
+        "sections": [
+          { "name": "封面", "pages": 1, "type": "title" },
+          { "name": "背景与目标", "pages": "2-3", "type": "content" },
+          { "name": "技术方案", "pages": "5-8", "type": "content" },
+          { "name": "实现进展", "pages": "3-5", "type": "content" },
+          { "name": "数据与效果", "pages": "2-3", "type": "data" },
+          { "name": "计划与风险", "pages": "2-3", "type": "content" },
+          { "name": "Q&A", "pages": 1, "type": "ending" }
+        ]
+      },
+
+      "format_rules": [
+        "代码块使用等宽字体和深色背景",
+        "架构图清晰、层次分明",
+        "数据对比使用表格",
+        "技术选型使用对比布局",
+        "性能数据使用大数字统计布局",
+        "时间线使用流程图布局"
+      ],
+
+      "content_source_preference": {
+        "title_page": "A",
+        "toc_page": "A",
+        "architecture_page": "C2",
+        "code_page": "A",
+        "data_page": "A",
+        "timeline_page": "A",
+        "comparison_page": "A",
+        "ending_page": "C1"
+      },
+
+      "visual_style": {
+        "color_theme": {
+          "name": "dark-tech",
+          "primary": "#1E3A5F",
+          "secondary": "#0D1B2A",
+          "accent": "#00B4D8",
+          "text": "#E0E1DD",
+          "highlight": "#FFD60A"
+        },
+        "font_style": {
+          "name": "tech",
+          "title": "Source Han Sans SC / Microsoft YaHei",
+          "body": "Source Han Sans SC / Microsoft YaHei",
+          "code": "JetBrains Mono / Consolas"
+        },
+        "layout_style": "balanced",
+        "icon_style": "linear"
+      },
+
+      "recommended_layouts": {
+        "title": ["title-slide"],
+        "content": ["two-column", "icon-text-rows"],
+        "data": ["big-stats", "2x2-grid"],
+        "architecture": ["architecture", "flowchart"],
+        "timeline": ["timeline"],
+        "comparison": ["comparison"],
+        "ending": ["quote", "title-slide"]
+      }
+    },
+
+    "product-demo": {
+      "id": "product-demo",
+      "display_name": "产品演示",
+      "description": "面向用户/客户/媒体的产品展示演示",
+      "audience": ["用户", "客户", "媒体", "合作伙伴"],
+      "tone": "热情、故事化、价值导向",
+
+      "page_config": {
+        "recommended_count": "10-20",
+        "time_per_slide": "1-2分钟",
+        "min_font_size": 20
+      },
+
+      "structure_template": {
+        "sections": [
+          { "name": "封面", "pages": 1, "type": "title" },
+          { "name": "痛点引入", "pages": "1-2", "type": "hook" },
+          { "name": "产品介绍", "pages": "3-5", "type": "content" },
+          { "name": "核心功能", "pages": "3-4", "type": "feature" },
+          { "name": "案例展示", "pages": "2-3", "type": "case" },
+          { "name": "价值总结", "pages": "1-2", "type": "summary" },
+          { "name": "行动号召", "pages": 1, "type": "cta" }
+        ]
+      },
+
+      "format_rules": [
+        "痛点-解决方案结构开场",
+        "用户故事增强代入感",
+        "产品截图/视频展示",
+        "客户案例增加说服力",
+        "数据支撑价值主张",
+        "清晰的行动号召"
+      ],
+
+      "content_source_preference": {
+        "title_page": "C1",
+        "pain_point_page": "B",
+        "product_intro": "C1",
+        "feature_page": "C1",
+        "case_page": "C3",
+        "value_page": "A",
+        "cta_page": "C1"
+      },
+
+      "visual_style": {
+        "color_theme": {
+          "name": "brand",
+          "primary": "{{BRAND_PRIMARY}}",
+          "secondary": "{{BRAND_SECONDARY}}",
+          "accent": "{{BRAND_ACCENT}}",
+          "text": "#333333",
+          "highlight": "{{BRAND_HIGHLIGHT}}"
+        },
+        "font_style": {
+          "name": "modern",
+          "title": "PingFang SC / SF Pro Display",
+          "body": "PingFang SC / SF Pro Text",
+          "code": "SF Mono"
+        },
+        "layout_style": "narrative",
+        "icon_style": "filled"
+      },
+
+      "recommended_layouts": {
+        "title": ["full-image", "title-slide"],
+        "hook": ["quote", "two-column"],
+        "content": ["two-column", "icon-text-rows"],
+        "feature": ["2x2-grid", "icon-text-rows"],
+        "case": ["comparison", "dashboard"],
+        "summary": ["big-stats"],
+        "cta": ["title-slide", "quote"]
+      }
+    },
+
+    "investor-pitch": {
+      "id": "investor-pitch",
+      "display_name": "投资人路演",
+      "description": "面向投资人/董事会的商业融资演示",
+      "audience": ["投资人", "董事会", "潜在合作伙伴"],
+      "tone": "自信、数据支撑、商业导向",
+
+      "page_config": {
+        "recommended_count": "10-15",
+        "time_per_slide": "1-2分钟",
+        "min_font_size": 20
+      },
+
+      "structure_template": {
+        "sections": [
+          { "name": "封面", "pages": 1, "type": "title" },
+          { "name": "问题与机会", "pages": "1-2", "type": "hook" },
+          { "name": "解决方案", "pages": "1-2", "type": "solution" },
+          { "name": "市场规模", "pages": "1-2", "type": "market" },
+          { "name": "商业模式", "pages": "1-2", "type": "business" },
+          { "name": "竞争优势", "pages": "1-2", "type": "advantage" },
+          { "name": "财务预测", "pages": "1-2", "type": "finance" },
+          { "name": "团队介绍", "pages": 1, "type": "team" },
+          { "name": "融资需求", "pages": 1, "type": "ask" }
+        ]
+      },
+
+      "format_rules": [
+        "问题-市场-解决方案结构",
+        "商业模式图清晰易懂",
+        "财务预测表格化",
+        "团队介绍简洁有力",
+        "数据可视化增强说服力",
+        "竞争优势对比明显"
+      ],
+
+      "content_source_preference": {
+        "title_page": "A",
+        "problem_page": "C1",
+        "solution_page": "C1",
+        "market_page": "A",
+        "business_page": "C2",
+        "advantage_page": "A",
+        "finance_page": "A",
+        "team_page": "C3",
+        "ask_page": "A"
+      },
+
+      "visual_style": {
+        "color_theme": {
+          "name": "premium",
+          "primary": "#1A1A2E",
+          "secondary": "#16213E",
+          "accent": "#E94560",
+          "text": "#EAEAEA",
+          "highlight": "#FFD700"
+        },
+        "font_style": {
+          "name": "formal",
+          "title": "Playfair Display / Noto Serif SC",
+          "body": "Lato / Noto Sans SC",
+          "code": "Roboto Mono"
+        },
+        "layout_style": "minimal",
+        "icon_style": "linear"
+      },
+
+      "recommended_layouts": {
+        "title": ["title-slide"],
+        "hook": ["quote", "two-column"],
+        "solution": ["two-column"],
+        "market": ["big-stats", "2x2-grid"],
+        "business": ["architecture", "flowchart"],
+        "advantage": ["comparison"],
+        "finance": ["dashboard", "big-stats"],
+        "team": ["2x2-grid", "icon-text-rows"],
+        "ask": ["big-stats", "title-slide"]
+      }
+    },
+
+    "team-sharing": {
+      "id": "team-sharing",
+      "display_name": "团队分享",
+      "description": "面向内部团队的知识分享和经验交流",
+      "audience": ["内部团队", "同事", "跨部门伙伴"],
+      "tone": "轻松、实用、互动性强",
+
+      "page_config": {
+        "recommended_count": "20-40",
+        "time_per_slide": "1分钟",
+        "min_font_size": 18
+      },
+
+      "structure_template": {
+        "sections": [
+          { "name": "封面", "pages": 1, "type": "title" },
+          { "name": "背景引入", "pages": "2-3", "type": "intro" },
+          { "name": "核心内容", "pages": "10-20", "type": "content" },
+          { "name": "实操演示", "pages": "5-10", "type": "demo" },
+          { "name": "经验总结", "pages": "2-3", "type": "summary" },
+          { "name": "Q&A", "pages": 1, "type": "ending" }
+        ]
+      },
+
+      "format_rules": [
+        "内容实用、可操作",
+        "包含详细步骤说明",
+        "代码示例丰富",
+        "互动问答环节",
+        "可附带参考资源链接",
+        "轻松的视觉风格"
+      ],
+
+      "content_source_preference": {
+        "title_page": "A",
+        "intro_page": "C1",
+        "content_page": "A",
+        "demo_page": "A",
+        "summary_page": "A",
+        "ending_page": "C1"
+      },
+
+      "visual_style": {
+        "color_theme": {
+          "name": "friendly",
+          "primary": "#2D3436",
+          "secondary": "#636E72",
+          "accent": "#0984E3",
+          "text": "#2D3436",
+          "highlight": "#00B894"
+        },
+        "font_style": {
+          "name": "casual",
+          "title": "Noto Sans SC / PingFang SC",
+          "body": "Noto Sans SC / PingFang SC",
+          "code": "Fira Code / JetBrains Mono"
+        },
+        "layout_style": "rich",
+        "icon_style": "colorful"
+      },
+
+      "recommended_layouts": {
+        "title": ["title-slide"],
+        "intro": ["two-column", "quote"],
+        "content": ["two-column", "icon-text-rows", "2x2-grid"],
+        "demo": ["flowchart", "timeline"],
+        "summary": ["big-stats", "comparison"],
+        "ending": ["quote"]
+      }
+    }
+  },
+
+  "content_source_types": {
+    "A": {
+      "name": "纯PPT编写",
+      "description": "文字、形状、表格、图表、SmartArt、图标",
+      "advantages": ["可编辑性强", "文件体积小", "修改方便"],
+      "best_for": ["标题页", "目录页", "文字列表页", "数据表格页"]
+    },
+    "B": {
+      "name": "纯AI生图",
+      "description": "整页由 AI 生成一张完整图片",
+      "advantages": ["视觉效果强", "复杂图形一站式生成"],
+      "best_for": ["复杂架构图", "概念示意图", "视觉冲击页"],
+      "rules": ["图中禁止出现文字", "文字由PPT后期添加"]
+    },
+    "C": {
+      "name": "混合模式",
+      "subtypes": {
+        "C1": {
+          "name": "PPT主体+AI配图",
+          "description": "PPT文字为主，AI生成配图",
+          "best_for": ["功能介绍页", "概念展示页"]
+        },
+        "C2": {
+          "name": "AI主体+PPT标注",
+          "description": "AI图占70%，PPT标注区30%",
+          "best_for": ["架构图页", "流程图页"]
+        },
+        "C3": {
+          "name": "PPT框架+多张AI图",
+          "description": "PPT布局框架，多张AI小图填充",
+          "best_for": ["案例矩阵页", "功能对比页"]
+        },
+        "C4": {
+          "name": "PPT图表+AI装饰",
+          "description": "PPT数据图表，AI装饰元素",
+          "best_for": ["数据展示页", "仪表盘页"]
+        }
+      }
+    }
+  },
+
+  "quality_metrics": {
+    "visual_design": {
+      "name": "视觉设计",
+      "max_score": 40,
+      "criteria": [
+        { "item": "色彩搭配协调", "score": 8 },
+        { "item": "字体层次清晰", "score": 8 },
+        { "item": "图片质量良好", "score": 8 },
+        { "item": "排版布局专业", "score": 8 },
+        { "item": "品牌一致性", "score": 8 }
+      ]
+    },
+    "content_logic": {
+      "name": "内容逻辑",
+      "max_score": 30,
+      "criteria": [
+        { "item": "结构清晰度", "score": 10 },
+        { "item": "信息密度适中", "score": 10 },
+        { "item": "重点突出", "score": 10 }
+      ]
+    },
+    "presentation_effect": {
+      "name": "演示效果",
+      "max_score": 30,
+      "criteria": [
+        { "item": "可读性", "score": 10 },
+        { "item": "受众匹配", "score": 10 },
+        { "item": "场景适配", "score": 10 }
+      ]
+    }
+  }
+}

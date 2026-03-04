@@ -70,20 +70,7 @@
 禁止：不要出现真实人物面部，不要出现其他App水印
 ```
 
-**English Prompt**:
-
-```
-Design a Xiaohongshu (Little Red Book) cover image, vertical 3:4 ratio (1080x1440px).
-
-Layout:
-- Top third: Bold headline "{pain_point_text}" in {text_color}, 72px font weight bold
-- Middle third: {product_name} app interface screenshot in phone mockup frame, slightly tilted 15 degrees with drop shadow
-- Bottom third: Subtitle "{core_value_proposition}" with {product_name} logo beside it
-
-Background: {color_scheme_description, e.g. "vertical gradient from dark navy #1A1A2E to deep blue #16213E, with a soft purple (#6C63FF) circular glow in top-left corner"}
-Style: Clean, modern, tech-savvy, appealing to young female users on Xiaohongshu
-Avoid: No real human faces, no watermarks from other apps
-```
+> ⚠️ 提示词统一规范：此 skill 内所有 AI 生图提示词统一使用中文，不再维护英文版本。
 
 ---
 

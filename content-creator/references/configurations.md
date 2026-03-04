@@ -88,7 +88,18 @@
         "#话题标签（3-5个）",
         "结尾互动引导"
       ],
-      "humanization": "每200字≥1错别字，避免过度正式，多用叹号和问号"
+      "humanization": "每200字≥1错别字，避免过度正式，多用叹号和问号",
+      "cover_policy": {
+        "enabled": false,
+        "phase": "phase_2",
+        "placeholder_mode": "image_plan_cover_slot",
+        "placement": "image_plan_head",
+        "generation_mode": "deferred_ai",
+        "default_aspect_ratio": "3:4",
+        "recommended_size": "1080x1440",
+        "source_filename": "cover-xhs.jpg",
+        "output_filename": "cover.jpg"
+      }
     }
   ]
 }
@@ -105,6 +116,32 @@
 | `length` | string | 字数范围 |
 | `format_rules` | array | 格式规则列表 |
 | `humanization` | string | 人性化策略 |
+| `cover_policy.enabled` | boolean | 是否启用平台级封面图占位 |
+| `cover_policy.phase` | string | 接入阶段，如 `phase_1` / `phase_2` |
+| `cover_policy.placeholder_mode` | string | 占位形式，如 `inline_markdown` / `header_comment` / `image_plan_cover_slot` |
+| `cover_policy.placement` | string | 封面占位放置位置，如 `article_head` |
+| `cover_policy.default_aspect_ratio` | string | 平台默认封面比例 |
+| `cover_policy.recommended_size` | string | 推荐像素尺寸 |
+| `cover_policy.source_filename` | string | 材料区平台专属封面源文件名 |
+| `cover_policy.output_filename` | string | 输出目录中的标准封面文件名 |
+
+### 平台级封面图策略（2026-03 新增）
+
+当前推荐按平台分开管理封面图，不再只使用单一 `cover.jpg`：
+
+| 平台 | 启用状态 | 占位模式 | 推荐比例 | 推荐尺寸 | Materials 源文件 |
+|------|----------|----------|----------|----------|------------------|
+| `wechat` | 启用 | `inline_markdown` | `21:9` | `900x383` | `cover-wechat.jpg` |
+| `jike` | 启用 | `header_comment` | `1:1` | `1080x1080` | `cover-jike.jpg` |
+| `twitter` | 启用 | `header_comment` | `4:5` | `1440x1800` | `cover-twitter.jpg` |
+| `xhs` | 预留 | `image_plan_cover_slot` | `3:4` | `1080x1440` | `cover-xhs.jpg` |
+| `zhihu` | 预留 | `inline_markdown` | `16:9` | `1280x720` | `cover-zhihu.jpg` |
+
+说明：
+- `inline_markdown`：在文章头部直接放 Markdown 封面占位，适合图文混排平台。
+- `header_comment`：在文章头部写注释型封面占位，不污染正文，适合即刻、Twitter/X 这类图文分离平台。
+- `image_plan_cover_slot`：封面需求写入独立配图策划，不直接写进正文。
+- 微信历史常用头图尺寸仍可参考 `900x383`，但由于当前生图接口不支持 `2.35:1`，执行时统一使用最接近的 `21:9`。
 
 ---
 
@@ -167,7 +204,7 @@ medias:
     count: 8
     total_size: 2.5MB
     files:
-      - cover.jpg
+      - cover-wechat.jpg
       - diagram-01.png
       - diagram-02.png
 
@@ -175,6 +212,18 @@ medias:
 target_platforms:
   - xhs        # 小红书
   - wechat     # 微信公众号
+
+# 创作模式
+creation:
+  mode: collaborative
+
+# 平台交付自动化配置
+delivery:
+  platforms:
+    xhs:
+      mode: auto_format
+    wechat:
+      mode: auto_format
 
 # 生成状态
 # 可能值：extraction_completed, draft_completed, completed
@@ -198,8 +247,46 @@ history:
 | `materials.*` | 素材信息 |
 | `medias.*` | 媒体资源信息 |
 | `target_platforms` | 目标平台列表 |
+| `creation.mode` | 创作模式：`collaborative` / `autonomous` |
+| `delivery.platforms.{platform}.mode` | 平台交付模式：`auto_format` / `auto_format_and_publish` |
 | `generation_status` | 生成状态（extraction_completed/topic_selected/outline_confirmed/draft_completed/scoring_completed/completed） |
 | `history` | 执行历史记录 |
+
+### 创作模式配置（2026-03 新增）
+
+| 模式 | 含义 |
+|------|------|
+| `collaborative` | 人机协同，关键节点可交互确认 |
+| `autonomous` | 自动创作，默认继续执行；出现 warning 写入 `Output/_reports/autonomous-run-report.md` |
+
+规则：
+- `creation.mode` 缺失时，默认 `collaborative`
+- `autonomous` 下，warning 不中断流程，仅进入自动化运行报告
+- 只有 hard blocker（如关键输入缺失）才中断执行
+
+### 平台交付自动化配置（2026-03 新增）
+
+用户侧只保留两档：
+
+| 模式 | 含义 |
+|------|------|
+| `auto_format` | 只自动完成本地构建与格式化，不调用 `content-publisher` |
+| `auto_format_and_publish` | 自动完成本地构建与格式化，再继续调用 `content-publisher` |
+
+平台内映射：
+
+| 平台 | `auto_format_and_publish` 的内部动作 |
+|------|--------------------------------------|
+| `wechat` | 自动创建公众号草稿（`draft/add`），不直接群发 |
+| `jike` | 直接调用即刻发布接口 |
+| `xhs` / `zhihu` | 待平台实现后按能力映射 |
+
+规则：
+- 若 `delivery.platforms.{platform}.mode` 缺失，默认按 `auto_format` 处理
+- 对 `wechat` 而言，`auto_format` 已包含 `markdown-to-wechat` 本地格式化
+- 一旦工作区配置显式写入 `auto_format_and_publish`，后续 Stage 6 视为用户已授权该平台自动继续执行发布动作
+- 进入 `auto_format_and_publish` 后，平台发布所需敏感信息统一由 `content-publisher` 通过 [`/secrets-vault` Skill](/Users/mileson/.cursor/skills/secrets-vault/SKILL.md) 获取
+- 若某平台自动发布能力暂未接通，Stage 6 会降级为本地交付并记录 warning（`status = publish_skipped`）
 
 ---
 

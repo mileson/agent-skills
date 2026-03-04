@@ -1,0 +1,28 @@
+platform:
+  id: jike
+  display_name: 即刻
+article:
+  title: 我把内容工作流重做了一遍
+  digest: 这次最大的变化，是把封面和正文插图彻底拆开了。
+publish_target:
+  mode: topic
+  sync_to_personal_update: true
+platform_specific:
+  jike:
+    topic_id: 63579abb6724cc583b9bba9a
+    topic_name: AI探索站
+    image_mode: selected
+    max_images: 3
+medias:
+  cover:
+    path: ./images/cover.jpg
+  inline_images:
+  - path: ./images/01.png
+    alt: 工作流示意图
+publish_records:
+- platform: jike
+  post_id: 69a4860b25bae56612e653aa
+  url: https://web.okjike.com/originalPost/69a4860b25bae56612e653aa
+  topic_id: 63579abb6724cc583b9bba9a
+  image_count: 2
+  sync_to_personal_update: true

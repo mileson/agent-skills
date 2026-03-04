@@ -39,6 +39,8 @@ user-invocable: false
 | `x_oauth` | X/Twitter 登录 | client_id, client_secret, callback_url |
 | `wechat_mp` | 微信公众号 | app_id, app_secret |
 | `personal` | 个人信息 | name, email |
+| `apimart_image` | APIMart 生图服务 | api_url, api_token, model, task_status_url |
+| `openrouter_image` | OpenRouter 生图服务 | api_url, api_key, model |
 
 **命名规范**: 多项目时使用 `<project_name>_<service>` 格式区分，如 `molthands_supabase`
 

@@ -1,5 +1,49 @@
 # 更新日志
 
+## v2.3 (2026-03-01) - 平台级封面图策略 ⭐
+
+### 🆕 新增功能
+
+#### 1. 平台级 AI 封面图占位
+
+- ✅ 在阶段2前移封面决策，新增 `AI封面图` 头部占位能力
+- ✅ 与正文 `[AI生图]`、`[待截图]` 占位彻底拆分，避免混用
+- ✅ 当前第一批支持：
+  - 微信公众号：`inline_markdown`，比例 `2.35:1`
+  - 即刻：`header_comment`，比例 `1:1`
+  - Twitter/X：`header_comment`，比例 `4:5`
+- ✅ 为小红书、知乎预留 `cover_policy`
+
+#### 2. 平台封面生成脚本升级
+
+- ✅ `generate_cover.py` 新增 `--platform`
+- ✅ 按平台自动切换默认比例、推荐尺寸、视觉方向
+- ✅ `--workspace` 输出默认改为 `Materials/Medias/images/cover-{platform}.jpg`
+- ✅ 内置提示词从“微信公众号专用风格”改为“平台 preset + 文章内容”
+
+#### 3. 平台规则文件升级
+
+- ✅ `platform_styles_lib.json` 新增 `cover_policy`
+- ✅ 修复原文件中的 JSON 转义问题，确保可被程序稳定读取
+
+### 📝 文档更新
+
+1. `SKILL.md`
+   - 增加平台级封面占位说明
+   - 更新 `generate_cover.py` 使用方式
+
+2. `references/workflow-stages.md`
+   - 阶段2：增加平台级封面占位格式
+   - 阶段3/4：补充图文分离平台的头部注释封面规则
+   - 阶段6：封面复制与 metadata 规则改为平台专属源文件
+
+3. `references/configurations.md`
+   - 新增 `cover_policy` 字段说明
+   - 增加平台级封面策略表
+
+4. `references/image-workflow.md`
+   - 增加平台专属封面源文件命名规则
+
 ## v2.2 (2026-02-04) - 精简输出文件 ⭐
 
 ### 🗑️ 移除内容

@@ -171,7 +171,7 @@ def main():
                 print("... (共 {} 张图片，格式相同)".format(len(result['images'])))
             print("```")
             
-            print("\n#### 在 article.md 中使用（阶段6，自动转换）：\n")
+            print("\n#### 在 article.md 中使用（阶段6，脚本清洗后）：\n")
             print("```markdown")
             # 只显示前2个示例
             for i, img in enumerate(result['images'][:2]):
@@ -187,7 +187,7 @@ def main():
             
             print("\n**⭐ 路径转换规则**：")
             print("- 阶段4（draft.md）：使用 `Medias/images/xxx.png`")
-            print("- 阶段6（article.md）：Agent 自动转换为 `images/xxx.png`")
+            print("- 阶段6（article.md）：通过 `sanitize_output_markdown.py` 确定性转换为 `images/xxx.png`")
         else:
             print("⚠️ 未找到任何图片文件")
     else:

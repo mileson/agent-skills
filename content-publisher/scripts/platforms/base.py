@@ -7,7 +7,7 @@
 #
 # 输入 (Input)
 # - workspace_path: 工作区路径（含 Output/{platform}/ 目录）
-# - 凭证: 通过 secrets-vault 的 get_secret.py 获取
+# - 凭证: 仅允许通过 secrets-vault 的 get_secret.py 获取
 #
 # 输出 (Output)
 # - 统一的发布结果 dict: {status, draft_id, publish_id, url, message}
@@ -16,7 +16,7 @@
 # content-publisher skill 的平台抽象层，所有具体平台实现继承此基类。
 #
 # 依赖 (Dependency)
-# - secrets-vault skill 的 get_secret.py 脚本
+# - secrets-vault skill 的 get_secret.py 脚本（唯一敏感凭证来源）
 # - Python 3.6+ 标准库: abc, subprocess, json, os
 #
 # 维护规则 (Maintenance Rules)
@@ -72,7 +72,11 @@ class PlatformPublisher(ABC):
         self._credentials = None
 
     def get_credentials(self, namespace: str = None) -> dict:
-        """Retrieve credentials from secrets-vault."""
+        """Retrieve credentials from secrets-vault.
+
+        这是发布阶段敏感凭证的唯一允许来源。
+        禁止从 workspace.config.yaml / metadata.yaml / Markdown 中读取账号密码或 token。
+        """
         ns = namespace or self.platform_id
         try:
             result = subprocess.run(
@@ -121,6 +125,14 @@ class PlatformPublisher(ABC):
                 f"No article file found in {self.output_dir}"
             )
         with open(html_path, "r", encoding="utf-8") as f:
+            return f.read()
+
+    def load_article_markdown(self) -> str:
+        """Load the markdown article file."""
+        md_path = self.output_dir / "article.md"
+        if not md_path.exists():
+            raise FileNotFoundError(f"article.md not found in {self.output_dir}")
+        with open(md_path, "r", encoding="utf-8") as f:
             return f.read()
 
     # Supported image extensions (shared by all image-related methods)

@@ -2,14 +2,21 @@
 
 当需要为 Markdown 文本中的占位符生成配图时，Agent 必须遵循以下规范来扩写提示词。
 
+适用对象：
+- 正文 `[AI生图]` 占位
+- 文章头部 `AI封面图` 占位
+
 ## 核心公式
-**Final Prompt = [Subject & Action] + [Contextual Details]**
-*(注意：风格后缀将由脚本通过套用 `styles.yaml` 自动添加，Agent 只需要负责核心画面描述的构建)*
+**Final Prompt = [主体与动作] + [上下文细节]**
+*(注意：风格后缀将由脚本通过套用 `styles.yaml` 自动添加，Agent 只需要负责核心画面描述的构建；核心描述统一使用中文。)*
 
 ## 提取步骤
 
 1. **提取主题与动作 (Subject & Action)**
-   从占位符的 `alt` 文本中提取。
+   从占位符描述中提取。
+   - 正文 `[AI生图]`：显式读取 `caption`、`aspect_ratio`、`prompt`。
+   - `AI封面图`：优先读取 `caption:`、`aspect_ratio:`、`prompt:`；若为 Markdown 头图占位，则按 `[platform][aspect_ratio][caption] prompt` 结构提取。
+   - `caption` 只作为最终图注，不参与画面细节扩写；真正给模型的输入来自 `prompt`。
    *示例*：`![用户登录注册流程](images/login.png)` -> "A user interacting with a login and registration flow"
 
 2. **分析上下文提炼细节 (Contextual Details)**
@@ -31,8 +38,35 @@
      - **指定语言 -> 严格遵循**：如果明确指定了语言（如英文、繁体中文），则严格遵循。
        *(提示词示例：`with English text "ERROR"`)*
 
-4. **翻译与组合**
-   将以上部分组合成一段连贯的**英文描述**。提示词应多用名词短语和形容词，避免复杂的长句和语法结构。
+4. **组合成中文画面描述**
+   将以上部分组合成一段连贯的**中文描述**。提示词应多用名词短语和形容词，避免复杂的长句和抽象空话。
+
+## 封面图额外规则（AI封面图）
+
+当占位属于 `AI封面图` 时，必须额外遵守：
+
+1. **默认纯画面**
+   除非用户明确要求，否则提示词中不要加入任何图中文字要求。
+
+2. **优先强调传播感**
+   相比正文配图，封面图更强调：
+   - 单一主视觉
+   - 更强的主体聚焦
+   - 更高的视觉对比
+   - 更明确的首屏情绪和概念隐喻
+
+3. **遵守平台比例**
+   必须读取占位中声明的比例，例如：
+   - `wechat` → `21:9`
+   - `jike` → `1:1`
+   - `twitter` → `4:5`
+
+4. **避免信息图思路**
+   除非用户明确要求，不要把封面图生成成：
+   - 流程图
+   - 架构图
+   - 带大量标签的信息海报
+   - 多模块拼贴图
 
 ## 实战示例
 
@@ -42,8 +76,8 @@
 这套机制极大地提升了系统的抗风险能力，使得我们的平台能够抵御外部的各类攻击..."
 
 **Agent 提取与组合过程**：
-- *Subject*: End-to-end encryption mechanism
-- *Details*: Data packets encapsulated in a glowing secure tunnel, traveling from a smartphone to a cloud server, unbreakable transparent energy shield, high-tech atmosphere, blue and green color tones.
-- *传给生成脚本的参数 (--prompt)*: "End-to-end encryption mechanism, data packets encapsulated in a glowing secure tunnel, traveling from a smartphone to a cloud server, unbreakable transparent energy shield, high-tech atmosphere, blue and green color tones"
+- *主体*: 端到端加密机制
+- *细节*: 数据包被包裹在发光的安全通道中，从手机流向云端服务器，外层有不可破坏的半透明能量护盾，蓝绿科技感氛围。
+- *传给生成脚本的参数 (--prompt)*: "端到端加密机制，数据包被包裹在发光的安全通道中，从手机流向云端服务器，外层有不可破坏的半透明能量护盾，蓝绿科技感氛围，无文字"
 
 *(脚本会自动将这个 prompt 与你指定的模板后缀例如 3d_isometric 组合成发给大模型的最终指令)*

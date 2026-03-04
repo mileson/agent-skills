@@ -1,245 +1,216 @@
 ---
 name: pptx
-description: "Use this skill any time a .pptx file is involved in any way — as input, output, or both. This includes: creating slide decks, pitch decks, or presentations; reading, parsing, or extracting text from any .pptx file (even if the extracted content will be used elsewhere, like in an email or summary); editing, modifying, or updating existing presentations; combining or splitting slide files; working with templates, layouts, speaker notes, or comments. Trigger whenever the user mentions \"deck,\" \"slides,\" \"presentation,\" or references a .pptx filename, regardless of what they plan to do with the content afterward. If a .pptx file needs to be opened, created, or touched, use this skill."
-license: Proprietary. LICENSE.txt has complete terms
+description: |
+  AI 驱动的演示文稿创建工作流，支持 PPT 文件版 (.pptx) 与 PPT 网页版 (HTML slides) 双输出。
+
+  适用场景：
+  - 创建专业演示文稿（技术汇报、产品演示、投资人路演、团队分享）
+  - 生成 PPT 文件版，交付 .pptx 继续编辑或线下演示
+  - 生成 PPT 网页版，交付单文件 HTML 幻灯片用于浏览器演示或在线分享
+  - 将现有 .ppt / .pptx 转换为网页演示
+  - 基于文档、笔记、图片素材自动组织内容并输出高质量演示
+
+  触发词："创建PPT"、"演示文稿"、"幻灯片"、"做一个汇报"、"PPT 网页版"、"PPT 文件版"、"HTML 幻灯片"、"现有PPT转网页版"、"网页演示稿"
+
+argument-hint: "[主题 | PPT 网页版 / PPT 文件版 / 现有PPT转网页版 | 素材路径]"
+allowed-tools: ["Read", "Write", "Edit", "Glob", "Bash"]
 ---
 
-# PPTX Skill
+# PPTX Skill v3.0
 
-## Quick Reference
+## When to Use
 
-| Task | Guide |
-|------|-------|
-| Read/analyze content | `python -m markitdown presentation.pptx` |
-| Edit or create from template | Read [editing.md](editing.md) |
-| Create from scratch | Read [pptxgenjs.md](pptxgenjs.md) |
+当用户需要以下任一能力时使用此 skill：
+- 创建新的演示文稿
+- 明确要求输出 `PPT 文件版`
+- 明确要求输出 `PPT 网页版`
+- 把现有 `.ppt` / `.pptx` 转成网页演示
+- 优化现有 HTML 演示稿
 
----
+## 首要规则：先确认输出形态
 
-## Reading Content
+`/pptx` 现在是双模态 skill，开始任何后续阶段前，必须先确认用户要的是哪一种交付：
 
-```bash
-# Text extraction
-python -m markitdown presentation.pptx
+1. `PPT 文件版`
+2. `PPT 网页版`
+3. `现有 PPT 转网页版`
+4. `现有网页版演示优化`
 
-# Visual overview
-python scripts/thumbnail.py presentation.pptx
+如果用户一开始只说“做个 PPT / 幻灯片 / 汇报”，但没有说清楚是文件版还是网页版：
 
-# Raw XML
-python scripts/office/unpack.py presentation.pptx unpacked/
-```
+- 必须主动追问
+- 在用户说明清楚前，禁止进入大纲、布局、内容生成或导出阶段
+- 不允许擅自猜测“默认做 .pptx”或“默认做 HTML”
 
----
-
-## Editing Workflow
-
-**Read [editing.md](editing.md) for full details.**
-
-1. Analyze template with `thumbnail.py`
-2. Unpack → manipulate slides → edit content → clean → pack
-
----
-
-## Creating from Scratch
-
-**Read [pptxgenjs.md](pptxgenjs.md) for full details.**
-
-Use when no template or reference presentation is available.
-
----
-
-## Style & Brand Routing
-
-Before generating or styling a PPTX, intelligently determine the appropriate visual style by loading the matching markdown file from `references/styles/`:
-
-1. **Explicit Request**: If the user explicitly specifies a brand or style (e.g., "Use Anthropic style"), you MUST read and apply the corresponding style file from `references/styles/` (e.g., `references/styles/anthropic.md`).
-2. **Contextual Inference**: If the user does not specify a brand/style, analyze the content type:
-   - For **Flowcharts, Architecture Diagrams, Business Workflows, and Concept Maps**: Automatically apply the Modern Flow style by reading `references/styles/modern-flow.md`.
-   - For general presentation slides: Fall back to the default guidelines in the **Design Ideas** section below.
-
-Available styles are located in the `references/styles/` directory.
-
----
-
-## Design Ideas
-
-**Don't create boring slides.** Plain bullets on a white background won't impress anyone. Consider ideas from this list for each slide.
-
-### Before Starting
-
-- **Pick a bold, content-informed color palette**: The palette should feel designed for THIS topic. If swapping your colors into a completely different presentation would still "work," you haven't made specific enough choices.
-- **Dominance over equality**: One color should dominate (60-70% visual weight), with 1-2 supporting tones and one sharp accent. Never give all colors equal weight.
-- **Dark/light contrast**: Dark backgrounds for title + conclusion slides, light for content ("sandwich" structure). Or commit to dark throughout for a premium feel.
-- **Commit to a visual motif**: Pick ONE distinctive element and repeat it — rounded image frames, icons in colored circles, thick single-side borders. Carry it across every slide.
-
-### Color Palettes
-
-Choose colors that match your topic — don't default to generic blue. Use these palettes as inspiration:
-
-| Theme | Primary | Secondary | Accent |
-|-------|---------|-----------|--------|
-| **Midnight Executive** | `1E2761` (navy) | `CADCFC` (ice blue) | `FFFFFF` (white) |
-| **Forest & Moss** | `2C5F2D` (forest) | `97BC62` (moss) | `F5F5F5` (cream) |
-| **Coral Energy** | `F96167` (coral) | `F9E795` (gold) | `2F3C7E` (navy) |
-| **Warm Terracotta** | `B85042` (terracotta) | `E7E8D1` (sand) | `A7BEAE` (sage) |
-| **Ocean Gradient** | `065A82` (deep blue) | `1C7293` (teal) | `21295C` (midnight) |
-| **Charcoal Minimal** | `36454F` (charcoal) | `F2F2F2` (off-white) | `212121` (black) |
-| **Teal Trust** | `028090` (teal) | `00A896` (seafoam) | `02C39A` (mint) |
-| **Berry & Cream** | `6D2E46` (berry) | `A26769` (dusty rose) | `ECE2D0` (cream) |
-| **Sage Calm** | `84B59F` (sage) | `69A297` (eucalyptus) | `50808E` (slate) |
-| **Cherry Bold** | `990011` (cherry) | `FCF6F5` (off-white) | `2F3C7E` (navy) |
-
-### For Each Slide
-
-**Every slide needs a visual element** — image, chart, icon, or shape. Text-only slides are forgettable.
-
-**Layout options:**
-- Two-column (text left, illustration on right)
-- Icon + text rows (icon in colored circle, bold header, description below)
-- 2x2 or 2x3 grid (image on one side, grid of content blocks on other)
-- Half-bleed image (full left or right side) with content overlay
-
-**Data display:**
-- Large stat callouts (big numbers 60-72pt with small labels below)
-- Comparison columns (before/after, pros/cons, side-by-side options)
-- Timeline or process flow (numbered steps, arrows)
-
-**Visual polish:**
-- Icons in small colored circles next to section headers
-- Italic accent text for key stats or taglines
-
-### Typography
-
-**Choose an interesting font pairing** — don't default to Arial. Pick a header font with personality and pair it with a clean body font.
-
-| Header Font | Body Font |
-|-------------|-----------|
-| Georgia | Calibri |
-| Arial Black | Arial |
-| Calibri | Calibri Light |
-| Cambria | Calibri |
-| Trebuchet MS | Calibri |
-| Impact | Arial |
-| Palatino | Garamond |
-| Consolas | Calibri |
-
-| Element | Size |
-|---------|------|
-| Slide title | 36-44pt bold |
-| Section header | 20-24pt bold |
-| Body text | 14-16pt |
-| Captions | 10-12pt muted |
-
-### Spacing
-
-- 0.5" minimum margins
-- 0.3-0.5" between content blocks
-- Leave breathing room—don't fill every inch
-
-### Avoid (Common Mistakes)
-
-- **Don't repeat the same layout** — vary columns, cards, and callouts across slides
-- **Don't center body text** — left-align paragraphs and lists; center only titles
-- **Don't skimp on size contrast** — titles need 36pt+ to stand out from 14-16pt body
-- **Don't default to blue** — pick colors that reflect the specific topic
-- **Don't mix spacing randomly** — choose 0.3" or 0.5" gaps and use consistently
-- **Don't style one slide and leave the rest plain** — commit fully or keep it simple throughout
-- **Don't create text-only slides** — add images, icons, charts, or visual elements; avoid plain title + bullets
-- **Don't forget text box padding** — when aligning lines or shapes with text edges, set `margin: 0` on the text box or offset the shape to account for padding
-- **Don't use low-contrast elements** — icons AND text need strong contrast against the background; avoid light text on light backgrounds or dark text on dark backgrounds
-- **NEVER use accent lines under titles** — these are a hallmark of AI-generated slides; use whitespace or background color instead
-
----
-
-## QA (Required)
-
-**Assume there are problems. Your job is to find them.**
-
-Your first render is almost never correct. Approach QA as a bug hunt, not a confirmation step. If you found zero issues on first inspection, you weren't looking hard enough.
-
-### Content QA
-
-```bash
-python -m markitdown output.pptx
-```
-
-Check for missing content, typos, wrong order.
-
-**When using templates, check for leftover placeholder text:**
-
-```bash
-python -m markitdown output.pptx | grep -iE "xxxx|lorem|ipsum|this.*(page|slide).*layout"
-```
-
-If grep returns results, fix them before declaring success.
-
-### Visual QA
-
-**⚠️ USE SUBAGENTS** — even for 2-3 slides. You've been staring at the code and will see what you expect, not what's there. Subagents have fresh eyes.
-
-Convert slides to images (see [Converting to Images](#converting-to-images)), then use this prompt:
+### 强制分流问法
 
 ```
-Visually inspect these slides. Assume there are issues — find them.
-
-Look for:
-- Overlapping elements (text through shapes, lines through words, stacked elements)
-- Text overflow or cut off at edges/box boundaries
-- Decorative lines positioned for single-line text but title wrapped to two lines
-- Source citations or footers colliding with content above
-- Elements too close (< 0.3" gaps) or cards/sections nearly touching
-- Uneven gaps (large empty area in one place, cramped in another)
-- Insufficient margin from slide edges (< 0.5")
-- Columns or similar elements not aligned consistently
-- Low-contrast text (e.g., light gray text on cream-colored background)
-- Low-contrast icons (e.g., dark icons on dark backgrounds without a contrasting circle)
-- Text boxes too narrow causing excessive wrapping
-- Leftover placeholder content
-
-For each slide, list issues or areas of concern, even if minor.
-
-Read and analyze these images:
-1. /path/to/slide-01.jpg (Expected: [brief description])
-2. /path/to/slide-02.jpg (Expected: [brief description])
-
-Report ALL issues found, including minor ones.
+┌──────────────────────────────────────────────────────────────┐
+│  演示输出形态确认                                             │
+│                                                              │
+│  你这次需要哪一种交付？                                       │
+│                                                              │
+│  [1] PPT 文件版                                               │
+│      输出 .pptx，可在 PowerPoint / Keynote / WPS 中继续编辑   │
+│                                                              │
+│  [2] PPT 网页版                                               │
+│      输出 HTML 幻灯片，浏览器打开，适合动画演示和在线分享      │
+│                                                              │
+│  [3] 现有 PPT 转网页版                                        │
+│      你提供 .ppt / .pptx，我转换成 HTML slides               │
+│                                                              │
+│  [4] 现有网页版演示优化                                        │
+│      你提供现有 HTML 演示稿，我做改版、增强或修复              │
+│                                                              │
+│  未确认前，不进入后续大纲和生成阶段                           │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-### Verification Loop
+### 辅助判断问题
 
-1. Generate slides → Convert to images → Inspect
-2. **List issues found** (if none found, look again more critically)
-3. Fix issues
-4. **Re-verify affected slides** — one fix often creates another problem
-5. Repeat until a full pass reveals no new issues
+如果用户仍然描述模糊，继续追问下面的问题，直到能确定模式：
+- 你希望最终交付是 `.pptx` 文件，还是浏览器打开的 `.html` 演示？
+- 你的听众是用 PowerPoint 放映，还是用浏览器现场展示？
+- 是否需要网页动画、滚动切页、在线分享链接？
+- 是否需要后续继续在 Office / Keynote 中编辑？
 
-**Do not declare success until you've completed at least one fix-and-verify cycle.**
+## 路由表
 
----
+| 用户目标 | 路由 |
+|---|---|
+| 新建 `.pptx` 演示 | 进入 `文件版工作流` |
+| 新建 HTML 幻灯片 | 进入 `网页版工作流` |
+| `.ppt/.pptx -> HTML slides` | 进入 `网页版工作流` 的 `PPT 转换路径` |
+| 已有 HTML slides 继续优化 | 进入 `网页版工作流` 的 `现有演示增强路径` |
 
-## Converting to Images
+## 文件版工作流
 
-Convert presentations to individual slide images for visual inspection:
+当用户明确要 `PPT 文件版` 时，使用当前 `/pptx` 的文件型输出流程。
 
-```bash
-python scripts/office/soffice.py --headless --convert-to pdf output.pptx
-pdftoppm -jpeg -r 150 output.pdf slide
+### 阶段概览
+
+| 阶段 | 名称 | 目标 | 用户确认 |
+|---|---|---|---|
+| 0 | 需求收集 | 明确场景、受众、页数、风格 | 必须 |
+| 1 | 大纲生成 | 提供 3 套结构方案 | 必须 |
+| 2 | 布局确认 | 使用 ASCII 预览关键页面布局 | 必须 |
+| 3 | 内容生成 | 生成 `.pptx` 初稿 | 自动 |
+| 4 | 质量检查 | 字体、留白、结构、可读性校验 | 自动 |
+| 5 | 优化确认 | 确认导出、修复问题、回改页面 | 必须 |
+
+### 文件版强制规则
+
+1. 创建前必须确认演示类型、目标受众、页数预算
+2. 创建前必须进行 ASCII 布局确认，至少确认首页、关键页、尾页
+3. 每页都要明确内容来源：
+   - `纯PPT编写`
+   - `纯AI生图`
+   - `混合模式`
+4. 所有 AI 生图默认禁止图中文字，文字应在 PPT 内后加
+5. 生成后必须进行质量检查，再进入导出
+
+### 文件版确认示意
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  文件版确认流程                                               │
+│                                                              │
+│  需求收集 -> 大纲方案 -> ASCII 布局确认 -> PPTX 生成          │
+│      -> 质量检查 -> 用户确认导出                             │
+│                                                              │
+│  关键页至少包含：                                             │
+│  - 封面页                                                     │
+│  - 1~2 个核心内容页                                           │
+│  - 结束页                                                     │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-This creates `slide-01.jpg`, `slide-02.jpg`, etc.
+### 文件版参考文档
 
-To re-render specific slides after fixes:
+- [editing.md](editing.md)
+- [pptxgenjs.md](pptxgenjs.md)
+- [references/prompts/ai_image_templates.json](references/prompts/ai_image_templates.json)
+- [references/presentation_styles_lib.json](references/presentation_styles_lib.json)
 
-```bash
-pdftoppm -jpeg -r 150 -f N -l N output.pdf slide-fixed
-```
+## 网页版工作流
 
----
+当用户明确要 `PPT 网页版`、`HTML 幻灯片`、`网页演示稿`，或要求把现有 `.ppt/.pptx` 转成网页演示时，使用网页版输出标准。
 
-## Dependencies
+### 网页版初版标准来源
 
-- `pip install "markitdown[pptx]"` - text extraction
-- `pip install Pillow` - thumbnail grids
-- `npm install -g pptxgenjs` - creating from scratch
-- LibreOffice (`soffice`) - PDF conversion (auto-configured for sandboxed environments via `scripts/office/soffice.py`)
-- Poppler (`pdftoppm`) - PDF to images
+网页版分支以 `frontend-slides` 仓库的方法论为首版标准基础，并适配到当前 `/pptx` skill：
+
+- 仓库地址：[frontend-slides](https://github.com/zarazhangrui/frontend-slides)
+- 定位：零依赖、单文件 HTML、动画丰富、浏览器运行的演示工作流
+
+### 网页版阶段概览
+
+| 阶段 | 名称 | 目标 |
+|---|---|---|
+| 0 | 模式识别 | 判断是新建网页演示、PPT 转网页，还是现有演示增强 |
+| 1 | 内容发现 | 收集目的、页数、内容成熟度、图片资源 |
+| 2 | 风格探索 | 通过 preview 做 “show, don’t tell” 风格选择 |
+| 3 | 演示生成 | 生成单文件 HTML 演示与配套 assets |
+| 4 | PPT 转换 | 从 `.ppt/.pptx` 提取内容并映射为 HTML slides |
+| 5 | 交付验收 | 打开演示、说明导航方式、记录可调整项 |
+
+### 网页版强制规则
+
+1. 默认交付 `单文件 HTML`
+2. 默认不依赖 npm、构建工具和前端框架
+3. 每一页必须完全贴合 viewport，禁止 slide 内滚动
+4. 内容过多时，必须拆页，不能压缩到不可读
+5. 风格选择优先使用 preview，而不是让用户抽象描述风格词
+6. 如果用户提供图片，必须先做可用性评估，再纳入页面规划
+
+### 网页版参考文档
+
+- [references/web-slides-workflow.md](references/web-slides-workflow.md)
+- [references/web-style-presets.md](references/web-style-presets.md)
+- [references/web-viewport-rules.md](references/web-viewport-rules.md)
+
+## 网页版与文件版的选择建议
+
+| 场景 | 推荐模式 |
+|---|---|
+| 需要交给同事继续在 Office 中编辑 | `PPT 文件版` |
+| 需要浏览器播放、动画更丰富、方便在线分享 | `PPT 网页版` |
+| 已有 `.pptx` 但想改成更强视觉效果的 HTML 演示 | `现有 PPT 转网页版` |
+| 已有 HTML slides 需要增强风格或修复布局 | `现有网页版演示优化` |
+
+## 默认输出示例
+
+### 如果用户这样说
+
+- `帮我做一个 AI 产品发布会 PPT 网页版`
+- `做一个季度复盘 PPT 文件版`
+- `把 demo.pptx 转成 PPT 网页版`
+- `做一个融资路演 HTML 幻灯片`
+
+### 你应该这样理解
+
+- 出现 `网页版 / HTML 幻灯片 / 网页演示稿` -> 走 `网页版工作流`
+- 出现 `文件版 / .pptx / PowerPoint / Keynote` -> 走 `文件版工作流`
+- 出现 `转网页版 / convert pptx to web` -> 走 `网页版工作流` 的 `PPT 转换路径`
+- 若没有明确说明 -> 继续追问，直到明确
+
+## Important Notes
+
+1. `/pptx` 不再默认等于 `.pptx` 文件，必须先做输出形态分流
+2. 网页版首版标准以 `frontend-slides` 为基础，不可退化成普通网页模板生成
+3. 文件版与网页版的流程不能混用：
+   - 文件版强调 ASCII 布局确认与 `.pptx` 可编辑性
+   - 网页版强调 preview 选风格、viewport fitting、单文件 HTML
+4. 若用户明确要求跳过某些确认步骤，可以适当压缩流程，但不能跳过输出形态确认
+
+## Output Checklist
+
+- [ ] 已确认输出形态
+- [ ] 已走对应分支流程
+- [ ] 若为文件版：已完成布局确认与质量检查
+- [ ] 若为网页版：已满足 viewport fitting 与交付说明
+- [ ] 最终输出文件类型与用户预期一致
+
+*版本: v3.0*
+*更新时间: 2026-02-28*
+*网页版初版标准基础: frontend-slides*

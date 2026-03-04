@@ -1,7 +1,7 @@
 # ==================== 工作区配置模板 ====================
 # 文件：workspace.config.yaml
 # 版本：v1.0
-# 说明：content-creator skill 工作区状态追踪文件
+# 说明：content-creator skill 工作区状态追踪文件参考模板（用于字段规范说明，非运行时读取源）
 # 生成时机：阶段 0 完成后自动生成
 # =====================================================
 
@@ -54,6 +54,31 @@ medias:
 #          jike（即刻）、twitter、linkedin、douyin（抖音）、
 #          bilibili（B站）、instagram
 target_platforms: []
+
+
+# ==================== 创作模式配置 ====================
+# collaborative：人机协同（默认）
+# autonomous：自动创作（默认继续执行；出现 warning 记录到 Output/_reports/autonomous-run-report.md）
+creation:
+  mode: "collaborative"
+
+
+# ==================== 平台交付自动化配置 ====================
+# 用户侧只保留两档：
+#   - auto_format：自动格式化，生成本地发布产物，不调用 content-publisher
+#   - auto_format_and_publish：自动格式化后继续调用 content-publisher
+#
+# 平台内含义：
+#   - wechat：auto_format_and_publish = 自动创建公众号草稿（draft/add），不直接群发
+#   - jike：auto_format_and_publish = 直接调用发布接口
+#   - 其他平台：按该平台未来能力映射
+delivery:
+  platforms: {}
+    # 示例：
+    # wechat:
+    #   mode: "auto_format"
+    # jike:
+    #   mode: "auto_format_and_publish"
 
 
 # ==================== 生成状态 ====================

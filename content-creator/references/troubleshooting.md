@@ -148,7 +148,7 @@ ls ~/.cursor/skills/content-creator-memory/memories/examples/wechat/
 ### 症状
 
 ```
-❌ 错误：无法处理图片 Medias/images/cover.jpg
+❌ 错误：无法处理图片 Medias/images/cover-wechat.jpg
 原因：格式不支持
 ```
 
@@ -170,14 +170,14 @@ identify Medias/images/*.jpg  # 需安装 ImageMagick
 **步骤2：转换格式**
 ```bash
 # 转换为支持的格式（jpg/png/webp）
-convert cover.heic cover.jpg  # HEIC → JPG
+convert cover.heic cover-wechat.jpg  # HEIC → JPG
 convert diagram.bmp diagram.png  # BMP → PNG
 ```
 
 **步骤3：调整尺寸**
 ```bash
 # 压缩大图片
-convert cover.jpg -resize 1920x1080 cover-optimized.jpg
+convert cover-wechat.jpg -resize 1920x1080 cover-wechat-optimized.jpg
 
 # 放大小图片（不推荐，建议使用原图）
 convert icon.png -resize 1080x1080 icon-large.png
@@ -306,7 +306,7 @@ ls Materials/Medias/images/
 **推荐做法**：
 - ✅ 默认使用工作流A（markdown-to-wechat 一键处理）
 - ✅ 除非有特殊需求，否则不要手动修改图片路径
-- ✅ 如果使用外部工具，在阶段6生成时明确告知 Agent
+- ✅ 如果使用外部工具，在阶段6生成时明确告知 Agent，并仍先通过 `sanitize_output_markdown.py` 生成干净的 `article.md`
 
 **告知 Agent 使用外部工具**：
 
