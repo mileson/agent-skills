@@ -40,6 +40,8 @@ yarn-error.log
 *.key
 credentials.json
 secrets/
+wechat-content-creator/data/local_vault.yaml
+wechat-content-creator/data/*.local.yaml
 
 # Test coverage
 .coverage
@@ -57,6 +59,7 @@ glm-usage-query-skill/
 
 # Existing git submodules/repos (可选：如果需要包含 videocut，请删除此行)
 videocut/
+.omx/
 markdown-image-uploader/config/my_hosts.yaml
 markdown-image-uploader/config/*.local.yaml
 markdown-image-uploader/config/*secrets*.yaml
