@@ -1,45 +1,25 @@
 # 图床配置模板
-# 使用方法：复制此文件为 my_hosts.yaml 并填写你的配置
+# 使用方法：复制此文件为 my_hosts.yaml 并填写你的配置，或将敏感字段存入 secrets-vault 的 aliyun_oss 命名空间。
 
-# 当前启用的图床提供商
 active_provider: aliyun_oss
 
-# 阿里云 OSS 配置
 aliyun_oss:
   # === 必填配置 ===
-  access_key_id: "***REMOVED***"              # 格式如：LTAI5t***********
-  access_key_secret: "***REMOVED***"       # 格式如：3Xj***********
-  bucket: "mileson-documents"                       # 格式如：my-blog-images
-  region: "cn-hangzhou"                             # ✅ 修复：应该是 cn-hangzhou，不是 oss-cn-hangzhou
-  endpoint: "oss-cn-hangzhou.aliyuncs.com"         # 对应的 Endpoint
-  
-  # === 可选配置 ===
-  use_ssl: true                                    # 是否使用 HTTPS（推荐）
-  cdn_domain: ""                                   # CDN 加速域名（如 cdn.example.com）
-  base_path: "markdown-images"                     # 基础路径前缀
-  
-  # 路径组织策略
-  path_strategy: article_name                      # article_name | date_based | flat
-  # - article_name: 按文章名称归类（推荐）
-  #   示例：markdown-images/article-name/image.png
-  # - date_based: 按日期归类
-  #   示例：markdown-images/2026/01/25/image.png
-  # - flat: 平铺到同一目录
-  #   示例：markdown-images/image.png
-  
-  # 文件名策略
-  filename_strategy: keep_original                 # keep_original | hash | uuid
-  # - keep_original: 保持原文件名
-  # - hash: 使用文件内容 MD5 hash
-  # - uuid: 使用随机 UUID
-  
-  # 文件冲突处理策略
-  conflict_strategy: skip                          # skip | overwrite | rename
-  # - skip: 跳过上传，使用已有 URL
-  # - overwrite: 覆盖旧文件
-  # - rename: 添加时间戳后缀
+  access_key_id: "your-access-key-id"             # 推荐放到 secrets-vault 中，避免提交到 Git
+  access_key_secret: "your-access-key-secret"     # 推荐放到 secrets-vault 中，避免提交到 Git
+  bucket: "mileson-documents"                     # 格式如：my-blog-images
+  region: "cn-hangzhou"                           # 应为 cn-hangzhou，不是 oss-cn-hangzhou
+  endpoint: "oss-cn-hangzhou.aliyuncs.com"       # 对应的 Endpoint
 
-# 七牛云配置（待扩展）
+  # === 可选配置 ===
+  use_ssl: true
+  cdn_domain: ""
+  base_path: "markdown-images"
+
+  path_strategy: article_name                      # article_name | date_based | flat
+  filename_strategy: keep_original                # keep_original | hash | uuid
+  conflict_strategy: skip                         # skip | overwrite | rename
+
 qiniu:
   enabled: false
   access_key: ""
@@ -48,7 +28,6 @@ qiniu:
   domain: ""
   path: ""
 
-# 腾讯云 COS 配置（待扩展）
 tencent_cos:
   enabled: false
   secret_id: ""
@@ -57,18 +36,16 @@ tencent_cos:
   region: ""
   domain: ""
 
-# GitHub 图床配置（待扩展）
 github:
   enabled: false
-  repo: ""                                         # 格式：username/repo
-  token: ""                                        # Personal Access Token
+  repo: ""
+  token: ""
   branch: main
   path: images
 
-# 自定义上传配置（待扩展）
 custom:
   enabled: false
-  upload_url: ""                                   # 上传 API 端点
+  upload_url: ""
   api_key: ""
   method: POST
   field_name: file
