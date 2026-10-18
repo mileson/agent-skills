@@ -57,11 +57,11 @@
 
 | 模块入口 | 负责什么 | 什么时候看 |
 | --- | --- | --- |
-| [`pdf/`](pdf/) | PDF 文档处理技能 | 按当前职责查阅实现及目录内说明 |
-| [`frontend-design/`](frontend-design/) | 对应任务的技能目录 | 按当前职责查阅实现及目录内说明 |
-| [`browser-automation/`](browser-automation/) | 对应任务的技能目录 | 按当前职责查阅实现及目录内说明 |
-| [`ios-feature-creator/`](ios-feature-creator/) | 对应任务的技能目录 | 按当前职责查阅实现及目录内说明 |
-| [`docx/`](docx/) | 对应任务的技能目录 | 按当前职责查阅实现及目录内说明 |
-| [`pptx/`](pptx/) | 对应任务的技能目录 | 按当前职责查阅实现及目录内说明 |
-| [`xlsx/`](xlsx/) | 对应任务的技能目录 | 按当前职责查阅实现及目录内说明 |
-| [`skill-creator/`](skill-creator/) | 对应任务的技能目录 | 按当前职责查阅实现及目录内说明 |
+| [`pdf/`](pdf/) | PDF 提取、创建、拆分合并与表单处理 | 处理 PDF 内容、文件组合或表单时读取此 Skill |
+| [`frontend-design/`](frontend-design/) | 网页、组件与前端界面设计 | 创建页面、组件或调整界面视觉时读取此 Skill |
+| [`browser-automation/`](browser-automation/) | 网页操作、信息提取与浏览器验证 | 执行网页操作、抓取或截图任务时读取此 Skill |
+| [`ios-feature-creator/`](ios-feature-creator/) | 按 MVVM 约定创建 iOS 功能模块 | 新增 iOS 功能结构、模板代码与文档时读取此 Skill |
+| [`docx/`](docx/) | Word 文档创建、编辑与内容处理 | 制作或修改 .docx 文档、格式和内容时读取此 Skill |
+| [`pptx/`](pptx/) | PPT 文件与网页幻灯片制作 | 创建演示文稿或转换为网页演示时读取此 Skill |
+| [`xlsx/`](xlsx/) | 表格数据、公式、格式与图表处理 | 整理工作簿、计算公式或制作图表时读取此 Skill |
+| [`skill-creator/`](skill-creator/) | Skill 创建与更新指引 | 创建或修改 Skill 前查阅其规则与确认要求 |
